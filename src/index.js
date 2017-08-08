@@ -2,6 +2,13 @@
 
 import {createStore, combineReducers, applyMiddleware} from 'redux';
 
+const composeReducers = (...reducers) =>
+	(state, action) =>
+		reducers.reduce(
+			(state, reducer) => reducer(state, action),
+			state
+		);
+
 type TurnState = {
 	+actions: number,
 	+buys: number,
@@ -23,14 +30,30 @@ interface PlayableCard extends Card {
 	onPlay(Dispatch, GetState): void
 }
 
-interface IActionCard extends PlayableCard {}
-
-class ActionCard implements IActionCard {
+class ActionCard implements PlayableCard {
 	name = '';
 	text = '';
 	cost = Infinity;
 	onPlay(dispatch, getState) {
 		throw new Error('unimplemented');
+	}
+}
+
+interface ITreasureCard extends PlayableCard {
+	getValue(State): number;
+}
+
+class TreasureCard implements ITreasureCard {
+	name = '';
+	text = '';
+	cost = Infinity;
+
+	getValue(state) {
+		return -Infinity;
+	}
+
+	onPlay(dispatch, getState) {
+		dispatch({type: 'add-coin', amount: this.getValue(getState())});
 	}
 }
 
@@ -49,6 +72,15 @@ type Action =
 
 type GetState = () => State;
 type Dispatch = (action: Action) => any;
+
+export class Silver extends TreasureCard {
+	name = 'Silver';
+	cost = 3;
+
+	getValue() {
+		return 2;
+	}
+}
 
 export class Woodcutter extends ActionCard {
 	name = 'Woodcutter';
@@ -71,6 +103,15 @@ const defaultTurnState: TurnState = {
 	phase: 'action',
 };
 
+function commonTurnReduce(state: TurnState = defaultTurnState, action: Action): TurnState {
+	switch(action.type) {
+		case 'add-coin':
+			return {...state, coins: state.coins + action.amount};
+		default:
+			return state;
+	}
+}
+
 function action(state: TurnState = defaultTurnState, action: Action): TurnState {
 	switch(action.type) {
 		case 'play-card':
@@ -79,11 +120,9 @@ function action(state: TurnState = defaultTurnState, action: Action): TurnState 
 			return {...state, actions: state.actions + action.amount};
 		case 'add-buy':
 			return {...state, buys: state.buys + action.amount};
-		case 'add-coin':
-			return {...state, coins: state.coins + action.amount};
 		case 'phase':
 			return {...state, phase: action.phase};
-		default: (action: empty)
+		default:
 			return state;
 	}
 }
@@ -96,12 +135,14 @@ type Phase = $Keys<typeof phases>;
 
 const allowedCards: {[Phase]: Array<Class<Card>>} = {
 	action: [ActionCard],
-	buy: [],
+	buy: [TreasureCard],
 	cleanup: [],
 };
 
-const turn = (state: TurnState = defaultTurnState, action: Action): TurnState =>
+const phaseReduce = (state: TurnState = defaultTurnState, action: Action): TurnState =>
 	phases[state.phase](state, action);
+
+const turn = composeReducers(commonTurnReduce, phaseReduce);
 
 const dispatchCardPlay = store => next => action => {
 	console.log(action);
@@ -111,7 +152,10 @@ const dispatchCardPlay = store => next => action => {
 			const {phase} = store.getState().turn;
 			const cardAllowed = allowedCards[phase].some(type => action.card instanceof type);
 			if(cardAllowed) {
-				action.card.onPlay(a => store.dispatch(a));
+				action.card.onPlay(
+					store.dispatch.bind(store),
+					store.getState.bind(store)
+				);
 				return next(action);
 			}
 		default:
