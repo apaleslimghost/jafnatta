@@ -6,6 +6,7 @@ type TurnState = {
 	+actions: number,
 	+buys: number,
 	+coins: number,
+	+phase: Phase,
 };
 
 type State = {
@@ -33,7 +34,7 @@ type Action =
 	| PlayCardAction
 	| AddActionAction
 	| AddBuyAction
-	| AddCoinAction
+	| AddCoinAction;
 
 type GetState = () => State;
 type PromiseAction = Promise<Action>;
@@ -58,9 +59,10 @@ const defaultTurnState: TurnState = {
 	actions: 1,
 	buys: 1,
 	coins: 0,
+	phase: 'action',
 };
 
-function turn(state: TurnState = defaultTurnState, action: Action): TurnState {
+function action(state: TurnState = defaultTurnState, action: Action): TurnState {
 	switch(action.type) {
 		case 'play-card':
 			return state;
@@ -70,11 +72,20 @@ function turn(state: TurnState = defaultTurnState, action: Action): TurnState {
 			return {...state, buys: state.buys + action.amount};
 		case 'add-coin':
 			return {...state, coins: state.coins + action.amount};
-		default:
-			(action: empty);
+		default: (action: empty)
 			return state;
 	}
 }
+
+const buy = (state, action) => state;
+const cleanup = (state, action) => state;
+
+const phases = {action, buy, cleanup};
+
+type Phase = $Keys<typeof phases>;
+
+const turn = (state: TurnState = defaultTurnState, action: Action): TurnState =>
+	phases[state.phase](state, action);
 
 const dispatchCardPlay = store => next => action => {
 	console.log(action);
