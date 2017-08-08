@@ -206,7 +206,6 @@ const dispatchCardPlay = store => next => action => {
 function gainCardReducer(state: State = defaultState, action: Action): State {
 	switch(action.type) {
 		case 'gain-card':
-			console.log(state);
 			return {
 				...state,
 				player: {
