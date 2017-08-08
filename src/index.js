@@ -23,7 +23,7 @@ type State = {
 interface Card {
 	name: string;
 	text: string;
-	cost: number;
+	cost(State): number;
 }
 
 interface PlayableCard extends Card {
@@ -33,20 +33,20 @@ interface PlayableCard extends Card {
 class ActionCard implements PlayableCard {
 	name = '';
 	text = '';
-	cost = Infinity;
+	cost = () => Infinity;
 	onPlay(dispatch, getState) {
 		throw new Error('unimplemented');
 	}
 }
 
-interface ITreasureCard extends PlayableCard {
+interface ValuedCard extends PlayableCard {
 	getValue(State): number;
 }
 
-class TreasureCard implements ITreasureCard {
+class TreasureCard implements ValuedCard {
 	name = '';
 	text = '';
-	cost = Infinity;
+	cost = () => Infinity;
 
 	getValue(state) {
 		return -Infinity;
@@ -75,7 +75,7 @@ type Dispatch = (action: Action) => any;
 
 export class Silver extends TreasureCard {
 	name = 'Silver';
-	cost = 3;
+	cost = () => 3;
 
 	getValue() {
 		return 2;
@@ -88,7 +88,7 @@ export class Woodcutter extends ActionCard {
 		+1 Buy
 		+$2
 	`;
-	cost = 3;
+	cost = () => 3;
 
 	onPlay(dispatch: Dispatch) {
 		dispatch({type: 'add-buy', amount: 1});
