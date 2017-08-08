@@ -1,0 +1,13 @@
+{
+	"parser": "babel-eslint",
+	"plugins": [
+		"flowtype-errors"
+	],
+	"parserOptions": {
+		"ecmaVersion": 8,
+		"sourceType": "module"
+	},
+	"rules": {
+		"flowtype-errors/show-errors": "error"
+	}
+}
