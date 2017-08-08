@@ -121,13 +121,25 @@ function action(state: TurnState = defaultTurnState, action: Action): TurnState 
 		case 'add-buy':
 			return {...state, buys: state.buys + action.amount};
 		case 'phase':
-			return {...state, phase: action.phase};
+			if(action.phase === 'buy') {
+				return {...state, phase: action.phase};
+			} else return state;
 		default:
 			return state;
 	}
 }
 
-const buy = (state, action) => state;
+const buy = (state, action) => {
+	switch(action.type) {
+		case 'phase':
+			if(action.phase === 'cleanup') {
+				return {...state, phase: action.phase};
+			} else return state;
+		default:
+			return state;
+	}
+};
+
 const cleanup = (state, action) => state;
 
 const phases = {action, buy, cleanup};
