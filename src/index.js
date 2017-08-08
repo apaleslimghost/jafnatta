@@ -20,7 +20,7 @@ interface Card {
 }
 
 interface PlayableCard extends Card {
-	onPlay(Dispatch): void
+	onPlay(Dispatch, GetState): void
 }
 
 interface ActionCard extends PlayableCard {}
@@ -37,9 +37,7 @@ type Action =
 	| AddCoinAction;
 
 type GetState = () => State;
-type PromiseAction = Promise<Action>;
-type ThunkAction = (dispatch: Dispatch, getState: GetState) => any;
-type Dispatch = (action: Action | ThunkAction | PromiseAction | Array<Action>) => any;
+type Dispatch = (action: Action) => any;
 
 export class Woodcutter implements ActionCard {
 	name = 'Woodcutter';
@@ -65,7 +63,7 @@ const defaultTurnState: TurnState = {
 function action(state: TurnState = defaultTurnState, action: Action): TurnState {
 	switch(action.type) {
 		case 'play-card':
-			return state;
+			return {...state, actions: state.actions - 1};
 		case 'add-action':
 			return {...state, actions: state.actions + action.amount};
 		case 'add-buy':
