@@ -3,7 +3,5 @@
 import j, {Woodcutter, Silver} from './';
 
 j.subscribe(() => console.log(j.getState()));
-j.dispatch({type: 'play-card', card: new Woodcutter});
-j.dispatch({type: 'phase', phase: 'buy'});
-j.dispatch({type: 'play-card', card: new Silver});
-j.dispatch({type: 'phase', phase: 'cleanup'});
+j.dispatch({type: 'init-supply', cards: [Woodcutter, Silver]});
+j.dispatch({type: 'gain-card', card: Woodcutter});

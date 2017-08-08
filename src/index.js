@@ -1,6 +1,7 @@
 // @flow
 
 import {createStore, combineReducers, applyMiddleware} from 'redux';
+import {Map} from 'immutable';
 
 const composeReducers = (...reducers) =>
 	(state, action) =>
@@ -16,14 +17,25 @@ type TurnState = {
 	+phase: Phase,
 };
 
+type Supply = Map<Class<Card>, number>;
+
+type PlayerState = {
+	+deck: Array<Card>,
+	+hand: Array<Card>,
+	+discard: Array<Card>,
+};
+
 type State = {
 	+turn: TurnState,
+	+supply: Supply,
+	+player: PlayerState,
 };
 
 interface Card {
 	name: string;
 	text: string;
 	cost(State): number;
+	constructor(): Card;
 }
 
 interface PlayableCard extends Card {
@@ -62,13 +74,15 @@ type AddActionAction = {type: 'add-action', amount: number};
 type AddBuyAction = {type: 'add-buy', amount: number};
 type AddCoinAction = {type: 'add-coin', amount: number};
 type PhaseAction = {type: 'phase', phase: Phase};
+type GainAction = {type: 'gain-card', card: Class<Card>};
 
 type Action =
 	| PlayCardAction
 	| AddActionAction
 	| AddBuyAction
 	| AddCoinAction
-	| PhaseAction;
+	| PhaseAction
+	| GainAction;
 
 type GetState = () => State;
 type Dispatch = (action: Action) => any;
@@ -101,6 +115,20 @@ const defaultTurnState: TurnState = {
 	buys: 1,
 	coins: 0,
 	phase: 'action',
+};
+
+const defaultPlayerState: PlayerState = {
+	hand: [],
+	deck: [],
+	discard: [],
+};
+
+const defaultSupply = Map();
+
+const defaultState = {
+	turn: defaultTurnState,
+	player: defaultPlayerState,
+	supply: defaultSupply,
 };
 
 function commonTurnReduce(state: TurnState = defaultTurnState, action: Action): TurnState {
@@ -175,7 +203,43 @@ const dispatchCardPlay = store => next => action => {
 	}
 };
 
+function gainCardReducer(state: State = defaultState, action: Action): State {
+	switch(action.type) {
+		case 'gain-card':
+			console.log(state);
+			return {
+				...state,
+				player: {
+					...state.player,
+					discard: state.player.discard.concat([
+						new action.card
+					]),
+				},
+				supply: state.supply.update(
+					action.card,
+					amount => amount - 1
+				),
+			};
+		default:
+			return state;
+	}
+}
+
+function supply(state: Supply = defaultSupply, action: Action): Supply {
+	switch(action.type) {
+		case 'init-supply':
+			return action.cards.reduce(
+				(supply, card) => supply.set(card, 10),
+				state
+			);
+		default:
+			return state;
+	}
+}
+
+const player = (state = defaultPlayerState) => state;
+
 export default createStore(
-	combineReducers({turn}),
+	composeReducers(combineReducers({turn, supply, player}), gainCardReducer),
 	applyMiddleware(dispatchCardPlay)
 );
