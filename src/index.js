@@ -23,23 +23,34 @@ interface PlayableCard extends Card {
 	onPlay(Dispatch, GetState): void
 }
 
-interface ActionCard extends PlayableCard {}
+interface IActionCard extends PlayableCard {}
+
+class ActionCard implements IActionCard {
+	name = '';
+	text = '';
+	cost = Infinity;
+	onPlay(dispatch, getState) {
+		throw new Error('unimplemented');
+	}
+}
 
 type PlayCardAction = {type: 'play-card', card: PlayableCard};
 type AddActionAction = {type: 'add-action', amount: number};
 type AddBuyAction = {type: 'add-buy', amount: number};
 type AddCoinAction = {type: 'add-coin', amount: number};
+type PhaseAction = {type: 'phase', phase: Phase};
 
 type Action =
 	| PlayCardAction
 	| AddActionAction
 	| AddBuyAction
-	| AddCoinAction;
+	| AddCoinAction
+	| PhaseAction;
 
 type GetState = () => State;
 type Dispatch = (action: Action) => any;
 
-export class Woodcutter implements ActionCard {
+export class Woodcutter extends ActionCard {
 	name = 'Woodcutter';
 	text = `
 		+1 Buy
@@ -70,6 +81,8 @@ function action(state: TurnState = defaultTurnState, action: Action): TurnState 
 			return {...state, buys: state.buys + action.amount};
 		case 'add-coin':
 			return {...state, coins: state.coins + action.amount};
+		case 'phase':
+			return {...state, phase: action.phase};
 		default: (action: empty)
 			return state;
 	}
@@ -79,19 +92,28 @@ const buy = (state, action) => state;
 const cleanup = (state, action) => state;
 
 const phases = {action, buy, cleanup};
-
 type Phase = $Keys<typeof phases>;
+
+const allowedCards: {[Phase]: Array<Class<Card>>} = {
+	action: [ActionCard],
+	buy: [],
+	cleanup: [],
+};
 
 const turn = (state: TurnState = defaultTurnState, action: Action): TurnState =>
 	phases[state.phase](state, action);
 
 const dispatchCardPlay = store => next => action => {
 	console.log(action);
+
 	switch(action.type) {
 		case 'play-card':
-			const {card} = action;
-			card.onPlay(a => store.dispatch(a));
-			return next(action);
+			const {phase} = store.getState().turn;
+			const cardAllowed = allowedCards[phase].some(type => action.card instanceof type);
+			if(cardAllowed) {
+				action.card.onPlay(a => store.dispatch(a));
+				return next(action);
+			}
 		default:
 			return next(action);
 	}
