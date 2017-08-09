@@ -4,7 +4,7 @@
 //TODO players
 
 import {createStore, combineReducers, applyMiddleware} from 'redux';
-import {Map} from 'immutable';
+import {Map, List} from 'immutable';
 
 const composeReducers = (...reducers) =>
 	(state, action) =>
@@ -33,6 +33,25 @@ type State = {
 	+supply: Supply,
 	+player: PlayerState,
 };
+
+const inspectTurn = JSON.stringify;
+
+const inspectPlayer = (player: PlayerState): string =>
+	'{'+ Object.keys(player).map(k => `${k}: ${inspectCardArray(player[k])}`).join(', ') + '}';
+
+const inspectCardArray = (cards: Array<Card>): string =>
+	'[' + cards.map(card => card.constructor.cardName).join(', ') + ']';
+
+const inspectSupply = (supply: Supply): string =>
+	'{' + List(supply).map(
+		([card: Class<Card>, cards: Array<Card>]) => `${card.cardName}: ${cards.length}`
+	).join(', ') + '}'
+
+export const inspectState = (state: State): string => `State {
+	Turn: ${inspectTurn(state.turn)},
+	Player: ${inspectPlayer(state.player)},
+	Supply: ${inspectSupply(state.supply)},
+}`;
 
 interface Card {
 	static cardName: string;
@@ -130,7 +149,7 @@ export class Silver extends TreasureCard {
 }
 
 export class Copper extends TreasureCard {
-	static cardName = 'Silver';
+	static cardName = 'Copper';
 	static cost = () => 0;
 
 	getCoinValue() {
@@ -214,6 +233,12 @@ const buy = (state, action) => {
 			if(action.phase === 'cleanup') {
 				return {...state, phase: action.phase};
 			} else return state;
+		case 'buy-card':
+			return {
+				...state,
+				coins: state.coins - action.card.cost(state),
+				buys: state.buys - 1,
+			};
 		default:
 			return state;
 	}
@@ -261,11 +286,13 @@ const playCard = store => next => (action: Action) => {
 const buyCard = store => next => (action: Action) => {
 	switch(action.type) {
 		case 'buy-card':
-			const {phase} = store.getState().turn;
-			if(phase === 'buy') {
-				store.dispatch(addCoinAction(-action.card.cost(store.getState())));
+			const {phase, buys} = store.getState().turn;
+			if(phase === 'buy' && buys >= 1) {
+				const val = next(action);
 				store.dispatch(gainAction(action.card));
+				return val;
 			}
+			break;
 		default:
 			return next(action);
 	}
