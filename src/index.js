@@ -17,7 +17,7 @@ type TurnState = {
 	+phase: Phase,
 };
 
-type Supply = Map<Class<Card>, number>;
+type Supply = Map<Class<Card>, Array<Card>>;
 
 type PlayerState = {
 	+deck: Array<Card>,
@@ -32,9 +32,9 @@ type State = {
 };
 
 interface Card {
-	name: string;
-	text: string;
-	cost(State): number;
+	static cardName: string;
+	static text: string;
+	static cost(State): number;
 	constructor(): Card;
 }
 
@@ -43,29 +43,43 @@ interface PlayableCard extends Card {
 }
 
 class ActionCard implements PlayableCard {
-	name = '';
-	text = '';
-	cost = () => Infinity;
+	static cardName = '';
+	static text = '';
+	static cost = () => Infinity;
 	onPlay(dispatch, getState) {
 		throw new Error('unimplemented');
 	}
 }
 
-interface ValuedCard extends PlayableCard {
-	getValue(State): number;
+interface CoinValuedCard extends PlayableCard {
+	getCoinValue(State): number;
 }
 
-class TreasureCard implements ValuedCard {
-	name = '';
-	text = '';
-	cost = () => Infinity;
+interface VictoryValuedCard extends Card {
+	getVictoryValue(State): number;
+}
 
-	getValue(state) {
+class VictoryCard implements VictoryValuedCard {
+	static cardName = '';
+	static text = '';
+	static cost = () => Infinity;
+
+	getVictoryValue(state) {
+		return -Infinity;
+	}
+}
+
+class TreasureCard implements CoinValuedCard {
+	static cardName = '';
+	static text = '';
+	static cost = () => Infinity;
+
+	getCoinValue(state) {
 		return -Infinity;
 	}
 
 	onPlay(dispatch, getState) {
-		dispatch({type: 'add-coin', amount: this.getValue(getState())});
+		dispatch(addCoinAction(this.getCoinValue(getState())));
 	}
 }
 
@@ -75,6 +89,9 @@ type AddBuyAction = {type: 'add-buy', amount: number};
 type AddCoinAction = {type: 'add-coin', amount: number};
 type PhaseAction = {type: 'phase', phase: Phase};
 type GainAction = {type: 'gain-card', card: Class<Card>};
+type BuyAction = {type: 'buy-card', card: Class<Card>};
+type InitPlayerAction = {type: 'init-player'};
+type InitSupplyAction = {type: 'init-supply', cards: Array<Class<Card>>};
 
 type Action =
 	| PlayCardAction
@@ -82,31 +99,62 @@ type Action =
 	| AddBuyAction
 	| AddCoinAction
 	| PhaseAction
-	| GainAction;
+	| GainAction
+	| BuyAction
+	| InitPlayerAction
+	| InitSupplyAction;
+
+export const playCardAction = (card: PlayableCard): PlayCardAction => ({type: 'play-card', card});
+export const addActionAction = (amount: number): AddActionAction => ({type: 'add-action', amount});
+export const addBuyAction = (amount: number): AddBuyAction => ({type: 'add-buy', amount});
+export const addCoinAction = (amount: number): AddCoinAction => ({type: 'add-coin', amount});
+export const phaseAction = (phase: Phase): PhaseAction => ({type: 'phase', phase});
+export const gainAction = (card: Class<Card>): GainAction => ({type: 'gain-card', card});
+export const buyAction = (card: Class<Card>): BuyAction => ({type: 'buy-card', card});
+export const initPlayerAction = (): InitPlayerAction => ({type: 'init-player'});
+export const initSupplyAction = (cards: Array<Class<Card>>): InitSupplyAction => ({type: 'init-supply', cards});
 
 type GetState = () => State;
 type Dispatch = (action: Action) => any;
 
 export class Silver extends TreasureCard {
-	name = 'Silver';
-	cost = () => 3;
+	static cardName = 'Silver';
+	static cost = () => 3;
 
-	getValue() {
+	getCoinValue() {
+		return 2;
+	}
+}
+
+export class Copper extends TreasureCard {
+	static cardName = 'Silver';
+	static cost = () => 0;
+
+	getCoinValue() {
+		return 1;
+	}
+}
+
+export class Estate extends VictoryCard {
+	static cardName = 'Estate';
+	static cost = () => 2;
+
+	getVictoryValue() {
 		return 2;
 	}
 }
 
 export class Woodcutter extends ActionCard {
-	name = 'Woodcutter';
-	text = `
+	static cardName = 'Woodcutter';
+	static text = `
 		+1 Buy
 		+$2
 	`;
-	cost = () => 3;
+	static cost = () => 3;
 
 	onPlay(dispatch: Dispatch) {
-		dispatch({type: 'add-buy', amount: 1});
-		dispatch({type: 'add-coin', amount: 2});
+		dispatch(addBuyAction(1));
+		dispatch(addCoinAction(2));
 	}
 }
 
@@ -184,13 +232,17 @@ const phaseReduce = (state: TurnState = defaultTurnState, action: Action): TurnS
 
 const turn = composeReducers(commonTurnReduce, phaseReduce);
 
-const dispatchCardPlay = store => next => action => {
+const logActions = store => next => (action: Action) => {
 	console.log(action);
+	next(action);
+};
 
+const playCard = store => next => (action: Action) => {
 	switch(action.type) {
 		case 'play-card':
+			const card: Card = action.card; //WAT
 			const {phase} = store.getState().turn;
-			const cardAllowed = allowedCards[phase].some(type => action.card instanceof type);
+			const cardAllowed = allowedCards[phase].some(type => card instanceof type);
 			if(cardAllowed) {
 				action.card.onPlay(
 					store.dispatch.bind(store),
@@ -203,20 +255,34 @@ const dispatchCardPlay = store => next => action => {
 	}
 };
 
+const buyCard = store => next => (action: Action) => {
+	switch(action.type) {
+		case 'buy-card':
+			const {phase} = store.getState().turn;
+			if(phase === 'buy') {
+				store.dispatch(addCoinAction(-action.card.cost(store.getState())));
+				store.dispatch(gainAction(action.card));
+			}
+		default:
+			return next(action);
+	}
+};
+
 function gainCardReducer(state: State = defaultState, action: Action): State {
 	switch(action.type) {
 		case 'gain-card':
+			const [card, ...remaining] = state.supply.get(action.card);
 			return {
 				...state,
 				player: {
 					...state.player,
 					discard: state.player.discard.concat([
-						new action.card
+						card
 					]),
 				},
-				supply: state.supply.update(
+				supply: state.supply.set(
 					action.card,
-					amount => amount - 1
+					remaining
 				),
 			};
 		default:
@@ -224,11 +290,13 @@ function gainCardReducer(state: State = defaultState, action: Action): State {
 	}
 }
 
+const repeat = (length, f) => Array.from({length}, f);
+
 function supply(state: Supply = defaultSupply, action: Action): Supply {
 	switch(action.type) {
 		case 'init-supply':
 			return action.cards.reduce(
-				(supply, card) => supply.set(card, 10),
+				(supply, card) => supply.set(card, repeat(10, () => new card)),
 				state
 			);
 		default:
@@ -236,9 +304,34 @@ function supply(state: Supply = defaultSupply, action: Action): Supply {
 	}
 }
 
-const player = (state = defaultPlayerState) => state;
+function player(state: PlayerState = defaultPlayerState, action: Action): PlayerState {
+	switch(action.type) {
+		case 'init-player':
+			return {
+				...state,
+				deck: [
+					new Copper,
+					new Copper,
+					new Copper,
+					new Copper,
+					new Copper,
+					new Copper,
+					new Copper,
+					new Estate,
+					new Estate,
+					new Estate,
+				]
+			}
+		default:
+			return state;
+	}
+};
 
 export default createStore(
 	composeReducers(combineReducers({turn, supply, player}), gainCardReducer),
-	applyMiddleware(dispatchCardPlay)
+	applyMiddleware(
+		logActions,
+		playCard,
+		buyCard,
+	)
 );

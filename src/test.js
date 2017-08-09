@@ -1,7 +1,7 @@
 /* @flow */
 
-import j, {Woodcutter, Silver} from './';
+import j, {Woodcutter, Silver, Copper, initPlayerAction, initSupplyAction, buyAction} from './';
 
 j.subscribe(() => console.log(j.getState()));
-j.dispatch({type: 'init-supply', cards: [Woodcutter, Silver]});
-j.dispatch({type: 'gain-card', card: Woodcutter});
+j.dispatch(initPlayerAction());
+j.dispatch(initSupplyAction([Woodcutter, Silver]));
