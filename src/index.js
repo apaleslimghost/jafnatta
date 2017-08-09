@@ -1,5 +1,8 @@
 // @flow
 
+//TODO drawing & shuffling
+//TODO players
+
 import {createStore, combineReducers, applyMiddleware} from 'redux';
 import {Map} from 'immutable';
 
