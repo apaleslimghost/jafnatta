@@ -5,6 +5,7 @@
 
 import {createStore, combineReducers, applyMiddleware} from 'redux';
 import {Map, List} from 'immutable';
+import thunk from 'redux-thunk';
 
 const composeReducers = (...reducers) =>
 	(state, action) =>
@@ -137,7 +138,9 @@ export const initPlayerAction = (): InitPlayerAction => ({type: 'init-player'});
 export const initSupplyAction = (cards: Array<Class<Card>>): InitSupplyAction => ({type: 'init-supply', cards});
 
 type GetState = () => State;
-type Dispatch = (action: Action) => any;
+type PromiseAction = Promise<Action>;
+type ThunkAction = (dispatch: Dispatch, getState: GetState) => any;
+type Dispatch = (action: Action | ThunkAction | PromiseAction | Array<Action>) => any;
 
 export class Silver extends TreasureCard {
 	static cardName = 'Silver';
@@ -260,22 +263,27 @@ const phaseReduce = (state: TurnState = defaultTurnState, action: Action): TurnS
 
 const turn = composeReducers(commonTurnReduce, phaseReduce);
 
-const logActions = store => next => (action: Action) => {
+const logActions = store => next => action => {
 	console.log(action);
 	next(action);
 };
 
-const playCard = store => next => (action: Action) => {
+const makeTheCardDoAThing = (card: PlayableCard): ThunkAction => (dispatch: Dispatch, getState: GetState) =>
+	card.onPlay(
+		dispatch,
+		getState
+	);
+
+
+const playCard = store => next => action => {
 	switch(action.type) {
 		case 'play-card':
 			const card: Card = action.card; //WAT
 			const {phase} = store.getState().turn;
 			const cardAllowed = allowedCards[phase].some(type => card instanceof type);
 			if(cardAllowed) {
-				action.card.onPlay(
-					store.dispatch.bind(store),
-					store.getState.bind(store)
-				);
+				store.dispatch(makeTheCardDoAThing(action.card));
+
 				return next(action);
 			}
 		default:
@@ -283,7 +291,7 @@ const playCard = store => next => (action: Action) => {
 	}
 };
 
-const buyCard = store => next => (action: Action) => {
+const buyCard = store => next => action => {
 	switch(action.type) {
 		case 'buy-card':
 			const {phase, buys} = store.getState().turn;
@@ -360,6 +368,7 @@ function player(state: PlayerState = defaultPlayerState, action: Action): Player
 export default createStore(
 	composeReducers(combineReducers({turn, supply, player}), gainCardReducer),
 	applyMiddleware(
+		thunk,
 		logActions,
 		playCard,
 		buyCard,
