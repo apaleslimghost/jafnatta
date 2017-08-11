@@ -14,6 +14,11 @@ const composeReducers = (...reducers) =>
 			state
 		);
 
+type WaitState = {
+	+action?: string,
+	+promise?: ExternalPromise<Action>,
+};
+
 type TurnState = {
 	+actions: number,
 	+buys: number,
@@ -33,6 +38,7 @@ type State = {
 	+turn: TurnState,
 	+supply: Supply,
 	+player: PlayerState,
+	+wait: WaitState,
 };
 
 const inspectTurn = JSON.stringify;
@@ -52,6 +58,7 @@ export const inspectState = (state: State): string => `State {
 	Turn: ${inspectTurn(state.turn)},
 	Player: ${inspectPlayer(state.player)},
 	Supply: ${inspectSupply(state.supply)},
+	Wait: ${JSON.stringify(state.wait)},
 }`;
 
 interface Card {
@@ -62,7 +69,7 @@ interface Card {
 }
 
 interface PlayableCard extends Card {
-	onPlay(Dispatch, GetState): void
+	onPlay(Dispatch, GetState): void | Promise<void>
 }
 
 class ActionCard implements PlayableCard {
@@ -106,6 +113,28 @@ class TreasureCard implements CoinValuedCard {
 	}
 }
 
+type Resolve<T> = (T | Promise<T>) => void;
+type Reject = (Error) => void;
+
+class ExternalPromise<T> extends Promise<T> {
+	resolve: Resolve<T>;
+	reject: Reject;
+
+	constructor(resolver: (Resolve<T>, Reject) => void) {
+		super(resolver);
+	}
+
+	static create<T>(): ExternalPromise<T> {
+		let resolve, reject;
+		const out = new ExternalPromise((s, j) => {
+			resolve = s;
+			reject = j;
+		});
+
+		return Object.assign(out, {resolve, reject});
+	}
+}
+
 type PlayCardAction = {type: 'play-card', card: PlayableCard};
 type AddActionAction = {type: 'add-action', amount: number};
 type AddBuyAction = {type: 'add-buy', amount: number};
@@ -115,6 +144,7 @@ type GainAction = {type: 'gain-card', card: Class<Card>};
 type BuyAction = {type: 'buy-card', card: Class<Card>};
 type InitPlayerAction = {type: 'init-player'};
 type InitSupplyAction = {type: 'init-supply', cards: Array<Class<Card>>};
+type WaitForActionAction = {type: 'wait-for-action', action: string, promise: ExternalPromise<Action>};
 
 type Action =
 	| PlayCardAction
@@ -125,7 +155,8 @@ type Action =
 	| GainAction
 	| BuyAction
 	| InitPlayerAction
-	| InitSupplyAction;
+	| InitSupplyAction
+	| WaitForActionAction;
 
 export const playCardAction = (card: PlayableCard): PlayCardAction => ({type: 'play-card', card});
 export const addActionAction = (amount: number): AddActionAction => ({type: 'add-action', amount});
@@ -136,6 +167,12 @@ export const gainAction = (card: Class<Card>): GainAction => ({type: 'gain-card'
 export const buyAction = (card: Class<Card>): BuyAction => ({type: 'buy-card', card});
 export const initPlayerAction = (): InitPlayerAction => ({type: 'init-player'});
 export const initSupplyAction = (cards: Array<Class<Card>>): InitSupplyAction => ({type: 'init-supply', cards});
+export const waitForActionAction = (action: string): ThunkAction =>
+	(dispatch, getState) => {
+		const promise: ExternalPromise<Action> = ExternalPromise.create();
+		dispatch({type: 'wait-for-action', action, promise});
+		return promise;
+	};
 
 type GetState = () => State;
 type PromiseAction = Promise<Action>;
@@ -180,6 +217,20 @@ export class Woodcutter extends ActionCard {
 	onPlay(dispatch: Dispatch) {
 		dispatch(addBuyAction(1));
 		dispatch(addCoinAction(2));
+	}
+}
+
+export class ThroneRoom extends ActionCard {
+	static cardName = 'Throne Room';
+	static text = `
+		You may play an Action card from your hand twice.
+	`;
+	static cost = () => 4;
+
+	async onPlay(dispatch: Dispatch) {
+		const {card} = await dispatch(waitForActionAction('choose-card-from-hand'));
+		dispatch(playCardAction(card));
+		dispatch(playCardAction(card));
 	}
 }
 
@@ -365,8 +416,27 @@ function player(state: PlayerState = defaultPlayerState, action: Action): Player
 	}
 };
 
+function wait(state: WaitState = {}, action: Action): WaitState {
+	switch(action.type) {
+		case 'wait-for-action':
+			return {
+				...state,
+				action: action.action,
+				promise: action.promise,
+			}
+		case state.action:
+			if(state.promise) {
+				state.promise.resolve(action);
+			}
+
+			return {};
+		default:
+			return state;
+	}
+}
+
 export default createStore(
-	composeReducers(combineReducers({turn, supply, player}), gainCardReducer),
+	composeReducers(combineReducers({turn, supply, player, wait}), gainCardReducer),
 	applyMiddleware(
 		thunk,
 		logActions,

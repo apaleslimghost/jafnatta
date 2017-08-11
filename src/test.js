@@ -11,12 +11,9 @@ import j, {
 	addCoinAction,
 	phaseAction,
 	playCardAction,
+	waitForActionAction,
 } from './';
 
 j.subscribe(() => console.log(inspectState(j.getState())));
-j.dispatch(initPlayerAction());
-j.dispatch(initSupplyAction([Woodcutter, Silver]));
+j.dispatch(waitForActionAction('add-coin')).then(console.log.bind(console, 'waited for'));
 j.dispatch(addCoinAction(5));
-j.dispatch(playCardAction(new Woodcutter));
-j.dispatch(phaseAction('buy'));
-j.dispatch(buyAction(Woodcutter));
