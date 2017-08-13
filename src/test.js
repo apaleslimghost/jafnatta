@@ -1,6 +1,5 @@
-/* @flow */
-
 import j, {
+	ActionCard,
 	inspectState,
 	Woodcutter,
 	Silver,
@@ -11,9 +10,9 @@ import j, {
 	addCoinAction,
 	phaseAction,
 	playCardAction,
-	waitForActionAction,
+	askForCardAction,
 } from './';
 
 j.subscribe(() => console.log(inspectState(j.getState())));
-j.dispatch(waitForActionAction('add-coin')).then(console.log.bind(console, 'waited for'));
+j.dispatch(askForCardAction('hand', ActionCard)).then(console.log.bind(console, 'card from hand'));
 j.dispatch(addCoinAction(5));

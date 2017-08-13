@@ -1,4 +1,4 @@
-src-files = $(wildcard src/*.js)
+src-files = $(shell find src -name *.js)
 lib-files = $(patsubst src/%.js, lib/%.js, $(src-files))
 
 run: $(lib-files)
