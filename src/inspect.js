@@ -1,4 +1,8 @@
+//@flow
+
 import {List} from 'immutable';
+import type {PlayerState, Supply, State} from './types';
+import type {Card} from './cards/types';
 
 const inspectTurn = JSON.stringify;
 

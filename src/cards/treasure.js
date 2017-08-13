@@ -1,0 +1,19 @@
+//@flow
+
+import type {CoinValuedCard} from './types';
+import type {Dispatch, GetState, State} from '../types';
+import {addCoinAction} from '../';
+
+export default class TreasureCard implements CoinValuedCard {
+	static cardName = '';
+	static text = '';
+	static cost = () => Infinity;
+
+	getCoinValue(state: State) {
+		return -Infinity;
+	}
+
+	onPlay(dispatch: Dispatch, getState: GetState) {
+		dispatch(addCoinAction(this.getCoinValue(getState())));
+	}
+}

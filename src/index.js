@@ -23,89 +23,16 @@ import type {
 	Supply,
 	TurnState,
 	State,
+	GetState,
+	Dispatch,
+	ThunkAction,
 } from './types';
+
+import type {PlayableCard, VictoryValuedCard, CoinValuedCard, Card} from './cards/types';
 
 const composeReducers = (...reducers) => (state, action) =>
 	reducers.reduce((state, reducer) => reducer(state, action), state);
 
-interface Card {
-	static cardName: string,
-	static text: string,
-	static cost(State): number,
-	constructor(): Card,
-}
-
-interface PlayableCard extends Card {
-	onPlay(Dispatch, GetState): void | Promise<void>,
-}
-
-export class ActionCard implements PlayableCard {
-	static cardName = '';
-	static text = '';
-	static cost = () => Infinity;
-	onPlay(dispatch: Dispatch, getState: GetState) {
-		throw new Error('unimplemented');
-	}
-}
-
-interface CoinValuedCard extends PlayableCard {
-	getCoinValue(State): number,
-}
-
-interface VictoryValuedCard extends Card {
-	getVictoryValue(State): number,
-}
-
-class VictoryCard implements VictoryValuedCard {
-	static cardName = '';
-	static text = '';
-	static cost = () => Infinity;
-
-	getVictoryValue(state) {
-		return -Infinity;
-	}
-}
-
-class TreasureCard implements CoinValuedCard {
-	static cardName = '';
-	static text = '';
-	static cost = () => Infinity;
-
-	getCoinValue(state) {
-		return -Infinity;
-	}
-
-	onPlay(dispatch, getState) {
-		dispatch(addCoinAction(this.getCoinValue(getState())));
-	}
-}
-
-type Resolve<T> = (T | Promise<T>) => void;
-type Reject = Error => void;
-
-class ExternalPromise<T> extends Promise<T> {
-	resolve: Resolve<T>;
-	reject: Reject;
-
-	constructor(resolver: (Resolve<T>, Reject) => void) {
-		super(resolver);
-	}
-
-	static create<T>(): ExternalPromise<T> {
-		let resolve, reject;
-		const out = new ExternalPromise((s, j) => {
-			resolve = s;
-			reject = j;
-		});
-
-		return Object.assign(out, { resolve, reject });
-	}
-}
-
-export const playCardAction = (card: PlayableCard): PlayCardAction => ({
-	type: 'play-card',
-	card,
-});
 export const addActionAction = (amount: number): AddActionAction => ({
 	type: 'add-action',
 	amount,
@@ -157,13 +84,6 @@ export const chooseCardAction = (card: Card): ChooseCardAction => ({
 	type: 'choose-card',
 	card,
 });
-
-type GetState = () => State;
-type PromiseAction = Promise<Action>;
-type ThunkAction = (dispatch: Dispatch, getState: GetState) => any;
-type Dispatch = (
-	action: Action | ThunkAction | PromiseAction | Array<Action>
-) => any;
 
 export class Silver extends TreasureCard {
 	static cardName = 'Silver';
@@ -257,47 +177,9 @@ function commonTurnReduce(
 	}
 }
 
-function action(
-	state: TurnState = defaultTurnState,
-	action: Action
-): TurnState {
-	switch (action.type) {
-		case 'play-card':
-			return { ...state, actions: state.actions - 1 };
-		case 'add-action':
-			return { ...state, actions: state.actions + action.amount };
-		case 'add-buy':
-			return { ...state, buys: state.buys + action.amount };
-		case 'phase':
-			if (action.phase === 'buy') {
-				return { ...state, phase: action.phase };
-			} else return state;
-		default:
-			return state;
-	}
-}
 
-const buy = (state, action) => {
-	switch (action.type) {
-		case 'phase':
-			if (action.phase === 'cleanup') {
-				return { ...state, phase: action.phase };
-			} else return state;
-		case 'buy-card':
-			return {
-				...state,
-				coins: state.coins - action.card.cost(state),
-				buys: state.buys - 1,
-			};
-		default:
-			return state;
-	}
-};
 
-const cleanup = (state, action) => state;
 
-const phases = { action, buy, cleanup };
-type Phase = $Keys<typeof phases>;
 
 const allowedCards: { [Phase]: Array<Class<Card>> } = {
 	action: [ActionCard],

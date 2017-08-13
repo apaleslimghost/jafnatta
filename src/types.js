@@ -1,3 +1,12 @@
+//@flow
+
+import {Map} from 'immutable';
+import type {Card, PlayableCard} from './cards/types';
+import ExternalPromise from './external-promise';
+import phases from './reducers/phases';
+
+type Phase = $Keys<typeof phases>;
+
 export type PlayCardAction = {type: 'play-card', card: PlayableCard};
 export type AddActionAction = {type: 'add-action', amount: number};
 export type AddBuyAction = {type: 'add-buy', amount: number};
@@ -52,3 +61,10 @@ export type State = {
 	+player: PlayerState,
 	+wait: WaitState,
 }
+
+export type GetState = () => State;
+export type PromiseAction = Promise<Action>;
+export type ThunkAction = (dispatch: Dispatch, getState: GetState) => any;
+export type Dispatch = (
+	action: Action | ThunkAction | PromiseAction | Array<Action>
+) => any;
