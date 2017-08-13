@@ -28,37 +28,6 @@ import type {
 const composeReducers = (...reducers) => (state, action) =>
 	reducers.reduce((state, reducer) => reducer(state, action), state);
 
-;
-
-const inspectTurn = JSON.stringify;
-
-const inspectPlayer = (player: PlayerState): string =>
-	'{' +
-	Object.keys(player)
-		.map(k => `${k}: ${inspectCardArray(player[k])}`)
-		.join(', ') +
-	'}';
-
-const inspectCardArray = (cards: Array<Card>): string =>
-	'[' + cards.map(card => card.constructor.cardName).join(', ') + ']';
-
-const inspectSupply = (supply: Supply): string =>
-	'{' +
-	List(supply)
-		.map(
-			([card: Class<Card>, cards: Array<Card>]) =>
-				`${card.cardName}: ${cards.length}`
-		)
-		.join(', ') +
-	'}';
-
-export const inspectState = (state: State): string => `State {
-	Turn: ${inspectTurn(state.turn)},
-	Player: ${inspectPlayer(state.player)},
-	Supply: ${inspectSupply(state.supply)},
-	Wait: ${JSON.stringify(state.wait)},
-}`;
-
 interface Card {
 	static cardName: string,
 	static text: string,

@@ -1,6 +1,5 @@
 import j, {
 	ActionCard,
-	inspectState,
 	Woodcutter,
 	Silver,
 	Copper,
@@ -12,6 +11,8 @@ import j, {
 	playCardAction,
 	askForCardAction,
 } from './';
+
+import inspectState from './inspect';
 
 j.subscribe(() => console.log(inspectState(j.getState())));
 j.dispatch(askForCardAction('hand', ActionCard)).then(console.log.bind(console, 'card from hand'));
