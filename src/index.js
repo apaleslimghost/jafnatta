@@ -4,6 +4,7 @@
 //TODO players
 
 import { createStore, combineReducers, applyMiddleware } from 'redux';
+import type { Reducer, Store } from 'redux'
 import { Map, List } from 'immutable';
 import thunk from 'redux-thunk';
 import type {
@@ -26,43 +27,56 @@ import type {
 	GetState,
 	Dispatch,
 	ThunkAction,
+	Phase,
 } from './types';
+import ExternalPromise from './external-promise';
+import ActionCard from './cards/action'
+import TreasureCard from './cards/treasure'
+import VictoryCard from './cards/victory'
+import playCardAction from './actions/play-card'
+import phases from './reducers/phases';
+import {defaultPlayerState, defaultState, defaultTurnState, defaultSupply} from './state'
 
 import type {PlayableCard, VictoryValuedCard, CoinValuedCard, Card} from './cards/types';
-
-const composeReducers = (...reducers) => (state, action) =>
-	reducers.reduce((state, reducer) => reducer(state, action), state);
 
 export const addActionAction = (amount: number): AddActionAction => ({
 	type: 'add-action',
 	amount,
 });
+
 export const addBuyAction = (amount: number): AddBuyAction => ({
 	type: 'add-buy',
 	amount,
 });
+
 export const addCoinAction = (amount: number): AddCoinAction => ({
 	type: 'add-coin',
 	amount,
 });
+
 export const phaseAction = (phase: Phase): PhaseAction => ({
 	type: 'phase',
 	phase,
 });
+
 export const gainAction = (card: Class<Card>): GainAction => ({
 	type: 'gain-card',
 	card,
 });
+
 export const buyAction = (card: Class<Card>): BuyAction => ({
 	type: 'buy-card',
 	card,
 });
+
 export const initPlayerAction = (): InitPlayerAction => ({
 	type: 'init-player',
 });
+
 export const initSupplyAction = (
 	cards: Array<Class<Card>>
 ): InitSupplyAction => ({ type: 'init-supply', cards });
+
 export const waitForActionAction = (action: string): ThunkAction => (
 	dispatch,
 	getState
@@ -142,29 +156,6 @@ export class ThroneRoom extends ActionCard {
 	}
 }
 
-const defaultTurnState: TurnState = {
-	actions: 1,
-	buys: 1,
-	coins: 0,
-	phase: 'action',
-};
-
-const defaultPlayerState: PlayerState = {
-	hand: [],
-	deck: [],
-	discard: [],
-	inPlay: [],
-};
-
-const defaultSupply = Map();
-
-const defaultState = {
-	turn: defaultTurnState,
-	player: defaultPlayerState,
-	supply: defaultSupply,
-	wait: {},
-};
-
 function commonTurnReduce(
 	state: TurnState = defaultTurnState,
 	action: Action
@@ -177,10 +168,6 @@ function commonTurnReduce(
 	}
 }
 
-
-
-
-
 const allowedCards: { [Phase]: Array<Class<Card>> } = {
 	action: [ActionCard],
 	buy: [TreasureCard],
@@ -192,7 +179,7 @@ const phaseReduce = (
 	action: Action
 ): TurnState => phases[state.phase](state, action);
 
-const turn = composeReducers(commonTurnReduce, phaseReduce);
+const turn = (state, action) => commonTurnReduce(phaseReduce(state, action), action);
 
 const logActions = store => next => action => {
 	console.log(action);
@@ -207,10 +194,9 @@ const makeTheCardDoAThing = (card: PlayableCard): ThunkAction => (
 const playCard = store => next => action => {
 	switch (action.type) {
 		case 'play-card':
-			const card: Card = action.card; //WAT
 			const { phase } = store.getState().turn;
 			const cardAllowed = allowedCards[phase].some(
-				type => card instanceof type
+				type => action.card instanceof type
 			);
 			if (cardAllowed) {
 				store.dispatch(makeTheCardDoAThing(action.card));
@@ -300,7 +286,7 @@ function wait(state: WaitState = {}, action: Action): WaitState {
 			return {
 				...state,
 				action: action.action,
-				promise: action.promise,
+				prmise: action.promise,
 			};
 		case state.action:
 			if (state.promise) {
@@ -313,10 +299,14 @@ function wait(state: WaitState = {}, action: Action): WaitState {
 	}
 }
 
-export default createStore(
-	composeReducers(
-		combineReducers({ turn, supply, player, wait }),
-		gainCardReducer
-	),
+const sliceReducers = combineReducers({ turn, supply, player, wait })
+
+const reducer = (state, action) => gainCardReducer(sliceReducers(state, action), action)
+
+const store: Store<State, Action> = createStore(
+	reducer,
+	defaultState,
 	applyMiddleware(thunk, logActions, playCard, buyCard)
 );
+
+export default store

@@ -2,21 +2,21 @@
 
 import type {State, Dispatch, GetState} from '../types';
 
-export interface Card {
-	static cardName: string,
-	static text: string,
-	static cost(State): number,
-	constructor(): Card,
+export class Card {
+	static cardName: string
+	static text: string
+	static cost(_: State): number { return 0 }
+	constructor() {}
 }
 
-export interface PlayableCard extends Card {
-	onPlay(Dispatch, GetState): void | Promise<void>,
+export class PlayableCard extends Card {
+	onPlay(_: Dispatch, __: GetState): void | Promise<void> {}
 }
 
-export interface CoinValuedCard extends PlayableCard {
-	getCoinValue(State): number,
+export class CoinValuedCard extends PlayableCard {
+	getCoinValue(_: State): number { return 0 }
 }
 
-export interface VictoryValuedCard extends Card {
-	getVictoryValue(State): number,
+export class VictoryValuedCard extends Card {
+	getVictoryValue(_: State): number { return 0 }
 }

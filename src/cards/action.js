@@ -1,9 +1,9 @@
 //@flow
 
-import type {PlayableCard} from './types';
+import {PlayableCard} from './types';
 import type {Dispatch, GetState} from '../types';
 
-export default class ActionCard implements PlayableCard {
+export default class ActionCard extends PlayableCard {
 	static cardName = '';
 	static text = '';
 	static cost = () => Infinity;

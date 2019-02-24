@@ -5,7 +5,7 @@ import type {Card, PlayableCard} from './cards/types';
 import ExternalPromise from './external-promise';
 import phases from './reducers/phases';
 
-type Phase = $Keys<typeof phases>;
+export type Phase = $Keys<typeof phases>;
 
 export type PlayCardAction = {type: 'play-card', card: PlayableCard};
 export type AddActionAction = {type: 'add-action', amount: number};

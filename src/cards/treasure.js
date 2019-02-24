@@ -1,10 +1,10 @@
 //@flow
 
-import type {CoinValuedCard} from './types';
+import {CoinValuedCard} from './types';
 import type {Dispatch, GetState, State} from '../types';
 import {addCoinAction} from '../';
 
-export default class TreasureCard implements CoinValuedCard {
+export default class TreasureCard extends CoinValuedCard {
 	static cardName = '';
 	static text = '';
 	static cost = () => Infinity;

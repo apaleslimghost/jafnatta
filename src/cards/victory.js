@@ -1,9 +1,9 @@
 //@flow
 
-import type {VictoryValuedCard} from './types';
+import {VictoryValuedCard} from './types';
 import type {State} from '../types';
 
-export default class VictoryCard implements VictoryValuedCard {
+export default class VictoryCard extends VictoryValuedCard {
 	static cardName = '';
 	static text = '';
 	static cost = () => Infinity;

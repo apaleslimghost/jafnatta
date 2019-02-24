@@ -1,6 +1,8 @@
 //@flow
 
-const buy = (state, action) => {
+import type {TurnState, Action} from '../../types'
+
+const buy = (state: TurnState, action: Action) => {
 	switch (action.type) {
 		case 'phase':
 			if (action.phase === 'cleanup') {
