@@ -1,12 +1,11 @@
 {
-  "plugins": [
-    "transform-class-properties",
-    "transform-object-rest-spread",
-    "transform-async-to-generator",
-    "transform-runtime"
-  ],
+  "plugins": ["@babel/proposal-class-properties"],
   "presets": [
-    "flow",
-    "es2015"
+    "@babel/flow",
+    ["@babel/env", {
+      "targets": {
+        "node": "current"
+      }
+    }]
   ]
 }
