@@ -6,18 +6,9 @@ run: all
 
 all: $(lib-files)
 
-lib/%.js: lib/index.js
-	@:
-
-lib/index.js: $(src-files) | tmp/src
-	node_modules/.bin/babel --out-dir tmp $?
-	touch $@
-
-tmp/src: tmp lib
-	ln -sf ../lib tmp/src
-
-tmp lib:
-	mkdir -p $@
+lib/%.js: src/%.js
+	mkdir -p $(@D)
+	npx babel -o $@ $<
 
 clean:
-	rm -rf lib tmp
+	rm -rf lib
