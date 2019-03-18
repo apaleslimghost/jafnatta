@@ -1,11 +1,10 @@
-//@flow
 
-import type {State, Dispatch, GetState} from '../types';
+import {State, TurnState, Dispatch, GetState} from '../types';
 
 export class Card {
 	static cardName: string
 	static text: string
-	static cost(_: State): number { return 0 }
+	static cost(_: TurnState): number { return 0 }
 	constructor() {}
 }
 

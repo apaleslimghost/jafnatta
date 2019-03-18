@@ -1,6 +1,5 @@
-// @flow
 
-import type {State, Supply, TurnState, PlayerState} from './types'
+import {State, Supply, TurnState, PlayerState} from './types'
 import { Map, List } from 'immutable';
 
 export const defaultTurnState: TurnState = {

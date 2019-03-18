@@ -1,26 +1,25 @@
-//@flow
 
 import {List} from 'immutable';
-import type {PlayerState, Supply, State} from './types';
-import type {Card} from './cards/types';
+import {PlayerState, Supply, State} from './types';
+import {Card} from './cards/types';
 
 const inspectTurn = JSON.stringify;
 
 const inspectPlayer = (player: PlayerState): string =>
 	'{' +
 	Object.keys(player)
-		.map(k => `${k}: ${inspectCardArray(player[k])}`)
+		.map((k: keyof PlayerState) => `${k}: ${inspectCardArray(player[k])}`)
 		.join(', ') +
 	'}';
 
 const inspectCardArray = (cards: Array<Card>): string =>
-	'[' + cards.map(card => card.constructor.cardName).join(', ') + ']';
+	'[' + cards.map(card => (card.constructor as typeof Card).cardName).join(', ') + ']';
 
 const inspectSupply = (supply: Supply): string =>
 	'{' +
 	List(supply)
 		.map(
-			([card: Class<Card>, cards: Array<Card>]) =>
+			([card, cards]: [typeof Card, Array<Card>]) =>
 				`${card.cardName}: ${cards.length}`
 		)
 		.join(', ') +

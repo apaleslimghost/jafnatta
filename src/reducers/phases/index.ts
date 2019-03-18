@@ -1,4 +1,3 @@
-//@flow
 
 import action from './action';
 import buy from './buy';

@@ -1,6 +1,5 @@
-//@flow
 
-import type {TurnState, Action} from '../../types'
+import {TurnState, Action} from '../../types'
 import {defaultTurnState} from '../../state'
 
 export default function action(

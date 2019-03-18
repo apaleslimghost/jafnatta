@@ -1,13 +1,12 @@
-// @flow
 
 //TODO drawing & shuffling
 //TODO players
 
-import { createStore, combineReducers, applyMiddleware } from 'redux';
-import type { Reducer, Store } from 'redux'
+import { createStore, combineReducers, applyMiddleware, Middleware } from 'redux';
+import { Reducer, Store } from 'redux'
 import { Map, List } from 'immutable';
-import thunk from 'redux-thunk';
-import type {
+import thunk, {ThunkAction} from 'redux-thunk';
+import {
 	Action,
 	PlayCardAction,
 	AddActionAction,
@@ -26,7 +25,6 @@ import type {
 	State,
 	GetState,
 	Dispatch,
-	ThunkAction,
 	Phase,
 } from './types';
 import ExternalPromise from './external-promise';
@@ -37,7 +35,9 @@ import playCardAction from './actions/play-card'
 import phases from './reducers/phases';
 import {defaultPlayerState, defaultState, defaultTurnState, defaultSupply} from './state'
 
-import type {PlayableCard, VictoryValuedCard, CoinValuedCard, Card} from './cards/types';
+import {PlayableCard, VictoryValuedCard, CoinValuedCard, Card} from './cards/types';
+
+type ThunkResult<R> = ThunkAction<R, State, undefined, Action>;
 
 export const addActionAction = (amount: number): AddActionAction => ({
 	type: 'add-action',
@@ -59,12 +59,12 @@ export const phaseAction = (phase: Phase): PhaseAction => ({
 	phase,
 });
 
-export const gainAction = (card: Class<Card>): GainAction => ({
+export const gainAction = (card: typeof Card): GainAction => ({
 	type: 'gain-card',
 	card,
 });
 
-export const buyAction = (card: Class<Card>): BuyAction => ({
+export const buyAction = (card: typeof Card): BuyAction => ({
 	type: 'buy-card',
 	card,
 });
@@ -74,10 +74,10 @@ export const initPlayerAction = (): InitPlayerAction => ({
 });
 
 export const initSupplyAction = (
-	cards: Array<Class<Card>>
+	cards: Array<typeof Card>
 ): InitSupplyAction => ({ type: 'init-supply', cards });
 
-export const waitForActionAction = (action: string): ThunkAction => (
+export const waitForActionAction = (action: string): ThunkResult<ExternalPromise<Action>> => (
 	dispatch,
 	getState
 ) => {
@@ -87,9 +87,9 @@ export const waitForActionAction = (action: string): ThunkAction => (
 };
 
 export const askForCardAction = (
-	from: $Keys<PlayerState>,
-	cardType: Class<Card>
-): ThunkAction => (dispatch, getState) => {
+	from: keyof PlayerState,
+	cardType: typeof Card
+): ThunkResult<ExternalPromise<Action>> => (dispatch, getState) => {
 	dispatch({ type: 'ask-for-card', from, cardType });
 	return dispatch(waitForActionAction('choose-card'));
 };
@@ -168,7 +168,7 @@ function commonTurnReduce(
 	}
 }
 
-const allowedCards: { [Phase]: Array<Class<Card>> } = {
+const allowedCards: { [phase in Phase]: Array<typeof Card> } = {
 	action: [ActionCard],
 	buy: [TreasureCard],
 	cleanup: [],
@@ -179,28 +179,28 @@ const phaseReduce = (
 	action: Action
 ): TurnState => phases[state.phase](state, action);
 
-const turn = (state, action) => commonTurnReduce(phaseReduce(state, action), action);
+const turn = (state: TurnState, action: Action) => commonTurnReduce(phaseReduce(state, action), action);
 
-const logActions = store => next => action => {
+const logActions: Middleware = store => next => action => {
 	console.log(action);
 	next(action);
 };
 
-const makeTheCardDoAThing = (card: PlayableCard): ThunkAction => (
+const makeTheCardDoAThing = (card: PlayableCard): ThunkResult<void | Promise<void>> => (
 	dispatch: Dispatch,
 	getState: GetState
 ) => card.onPlay(dispatch, getState);
 
-const playCard = store => next => action => {
+const playCard: Middleware = store => next => action => {
 	switch (action.type) {
 		case 'play-card':
-			const { phase } = store.getState().turn;
+			const { phase }: { phase: Phase } = store.getState().turn;
 			const cardAllowed = allowedCards[phase].some(
 				type => action.card instanceof type
 			);
+
 			if (cardAllowed) {
 				store.dispatch(makeTheCardDoAThing(action.card));
-
 				return next(action);
 			}
 		default:
@@ -208,7 +208,7 @@ const playCard = store => next => action => {
 	}
 };
 
-const buyCard = store => next => action => {
+const buyCard: Middleware = store => next => action => {
 	switch (action.type) {
 		case 'buy-card':
 			const { phase, buys } = store.getState().turn;
@@ -240,7 +240,7 @@ function gainCardReducer(state: State = defaultState, action: Action): State {
 	}
 }
 
-const repeat = (length, f) => Array.from({ length }, f);
+const repeat = <T>(length: number, f: () => T): Array<T> => Array.from({ length }, f);
 
 function supply(state: Supply = defaultSupply, action: Action): Supply {
 	switch (action.type) {
@@ -286,7 +286,7 @@ function wait(state: WaitState = {}, action: Action): WaitState {
 			return {
 				...state,
 				action: action.action,
-				prmise: action.promise,
+				promise: action.promise,
 			};
 		case state.action:
 			if (state.promise) {
@@ -301,11 +301,10 @@ function wait(state: WaitState = {}, action: Action): WaitState {
 
 const sliceReducers = combineReducers({ turn, supply, player, wait })
 
-const reducer = (state, action) => gainCardReducer(sliceReducers(state, action), action)
+const reducer: Reducer = (state, action) => gainCardReducer(sliceReducers(state, action), action)
 
-const store: Store<State, Action> = createStore(
+const store = createStore(
 	reducer,
-	defaultState,
 	applyMiddleware(thunk, logActions, playCard, buyCard)
 );
 

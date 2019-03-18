@@ -1,7 +1,6 @@
-//@flow
 
 import {CoinValuedCard} from './types';
-import type {Dispatch, GetState, State} from '../types';
+import {Dispatch, GetState, State} from '../types';
 import {addCoinAction} from '../';
 
 export default class TreasureCard extends CoinValuedCard {

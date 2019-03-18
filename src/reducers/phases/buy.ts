@@ -1,6 +1,5 @@
-//@flow
 
-import type {TurnState, Action} from '../../types'
+import {TurnState, Action} from '../../types'
 
 const buy = (state: TurnState, action: Action) => {
 	switch (action.type) {
