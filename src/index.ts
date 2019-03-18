@@ -2,10 +2,10 @@
 //TODO drawing & shuffling
 //TODO players
 
-import { createStore, combineReducers, applyMiddleware, Middleware } from 'redux';
-import { Reducer, Store } from 'redux'
+import { createStore, combineReducers, applyMiddleware, Middleware, Store } from 'redux';
+import { Reducer, AnyAction, Dispatch } from 'redux'
 import { Map, List } from 'immutable';
-import thunk, {ThunkAction} from 'redux-thunk';
+import thunk, {ThunkAction, ThunkDispatch as BaseThunkDispatch} from 'redux-thunk';
 import {
 	Action,
 	PlayCardAction,
@@ -24,8 +24,9 @@ import {
 	TurnState,
 	State,
 	GetState,
-	Dispatch,
 	Phase,
+	ChooseCardFromHandAction,
+	ActionType,
 } from './types';
 import ExternalPromise from './external-promise';
 import ActionCard from './cards/action'
@@ -38,6 +39,7 @@ import {defaultPlayerState, defaultState, defaultTurnState, defaultSupply} from 
 import {PlayableCard, VictoryValuedCard, CoinValuedCard, Card} from './cards/types';
 
 type ThunkResult<R> = ThunkAction<R, State, undefined, Action>;
+type ThunkDispatch = BaseThunkDispatch<State, undefined, Action>;
 
 export const addActionAction = (amount: number): AddActionAction => ({
 	type: 'add-action',
@@ -77,11 +79,13 @@ export const initSupplyAction = (
 	cards: Array<typeof Card>
 ): InitSupplyAction => ({ type: 'init-supply', cards });
 
-export const waitForActionAction = (action: string): ThunkResult<ExternalPromise<Action>> => (
-	dispatch,
+type ActionFromType<T extends ActionType> = Extract<Action, {type: T}>
+
+export const waitForActionAction = <T extends ActionType>(action: T): ThunkResult<ExternalPromise<ActionFromType<T>>> => (
+	dispatch: ThunkDispatch,
 	getState
 ) => {
-	const promise: ExternalPromise<Action> = ExternalPromise.create();
+	const promise: ExternalPromise<ActionFromType<T>> = ExternalPromise.create();
 	dispatch({ type: 'wait-for-action', action, promise });
 	return promise;
 };
@@ -89,7 +93,7 @@ export const waitForActionAction = (action: string): ThunkResult<ExternalPromise
 export const askForCardAction = (
 	from: keyof PlayerState,
 	cardType: typeof Card
-): ThunkResult<ExternalPromise<Action>> => (dispatch, getState) => {
+): ThunkResult<ExternalPromise<Action>> => (dispatch: ThunkDispatch, getState) => {
 	dispatch({ type: 'ask-for-card', from, cardType });
 	return dispatch(waitForActionAction('choose-card'));
 };
@@ -134,7 +138,7 @@ export class Woodcutter extends ActionCard {
 	`;
 	static cost = () => 3;
 
-	onPlay(dispatch: Dispatch) {
+	onPlay(dispatch: ThunkDispatch) {
 		dispatch(addBuyAction(1));
 		dispatch(addCoinAction(2));
 	}
@@ -147,12 +151,15 @@ export class ThroneRoom extends ActionCard {
 	`;
 	static cost = () => 4;
 
-	async onPlay(dispatch: Dispatch) {
+	async onPlay(dispatch: ThunkDispatch) {
 		const { card } = await dispatch(
 			waitForActionAction('choose-card-from-hand')
 		);
-		dispatch(playCardAction(card));
-		dispatch(playCardAction(card));
+
+		if(card instanceof PlayableCard) { // TODO choose only playable
+			dispatch(playCardAction(card));
+			dispatch(playCardAction(card));
+		}
 	}
 }
 
@@ -187,11 +194,11 @@ const logActions: Middleware = store => next => action => {
 };
 
 const makeTheCardDoAThing = (card: PlayableCard): ThunkResult<void | Promise<void>> => (
-	dispatch: Dispatch,
+	dispatch: ThunkDispatch,
 	getState: GetState
 ) => card.onPlay(dispatch, getState);
 
-const playCard: Middleware = store => next => action => {
+const playCard: Middleware = ({dispatch}: {dispatch: ThunkDispatch}) => next => action => {
 	switch (action.type) {
 		case 'play-card':
 			const { phase }: { phase: Phase } = store.getState().turn;
@@ -200,7 +207,7 @@ const playCard: Middleware = store => next => action => {
 			);
 
 			if (cardAllowed) {
-				store.dispatch(makeTheCardDoAThing(action.card));
+				dispatch(makeTheCardDoAThing(action.card));
 				return next(action);
 			}
 		default:
@@ -303,7 +310,7 @@ const sliceReducers = combineReducers({ turn, supply, player, wait })
 
 const reducer: Reducer = (state, action) => gainCardReducer(sliceReducers(state, action), action)
 
-const store = createStore(
+const store: Store & {dispatch: ThunkDispatch} = createStore(
 	reducer,
 	applyMiddleware(thunk, logActions, playCard, buyCard)
 );

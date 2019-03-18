@@ -4,6 +4,10 @@
   "description": "",
   "author": "",
   "license": "ISC",
+  "scripts": {
+    "start": "node lib/test.js",
+    "build": "tsc"
+  },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.3.3",

@@ -18,6 +18,7 @@ export type InitSupplyAction = {type: 'init-supply', cards: Array<typeof Card>};
 export type WaitForActionAction = {type: 'wait-for-action', action: string, promise: ExternalPromise<Action>};
 export type AskForCardAction = {type: 'ask-for-card', from: keyof PlayerState, cardType: typeof Card};
 export type ChooseCardAction = {type: 'choose-card', card: Card};
+export type ChooseCardFromHandAction = {type: 'choose-card-from-hand', card: Card};
 
 export type Action =
 	| PlayCardAction
@@ -31,7 +32,10 @@ export type Action =
 	| InitSupplyAction
 	| WaitForActionAction
 	| AskForCardAction
-	| ChooseCardAction;
+	| ChooseCardAction
+	| ChooseCardFromHandAction;
+
+export type ActionType = Action['type'];
 
 export type WaitState = {
 	action?: string,
@@ -64,6 +68,6 @@ export type State = {
 export type GetState = () => State;
 export type PromiseAction = Promise<Action>;
 // export type ThunkAction = (dispatch: Dispatch, getState: GetState) => any;
-export type Dispatch = (
-	action: Action | PromiseAction | Array<Action>
-) => any;
+// export type Dispatch = (
+// 	action: Action | PromiseAction | Array<Action>
+// ) => any;
