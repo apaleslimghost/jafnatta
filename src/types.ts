@@ -67,7 +67,7 @@ export type State = {
 
 export type GetState = () => State;
 export type PromiseAction = Promise<Action>;
-// export type ThunkAction = (dispatch: Dispatch, getState: GetState) => any;
-// export type Dispatch = (
-// 	action: Action | PromiseAction | Array<Action>
-// ) => any;
+export type ThunkAction = (dispatch: Dispatch, getState: GetState) => any;
+export type Dispatch = (
+	action: Action | PromiseAction | Array<Action>
+) => any;
