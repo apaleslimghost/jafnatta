@@ -38,6 +38,8 @@ import {defaultPlayerState, defaultState, defaultTurnState, defaultSupply} from 
 
 import {PlayableCard, VictoryValuedCard, CoinValuedCard, Card} from './cards/types';
 
+import * as util from 'util'
+
 type ThunkResult<R> = ThunkAction<R, State, undefined, Action>;
 type ThunkDispatch = BaseThunkDispatch<State, undefined, Action>;
 
@@ -189,7 +191,7 @@ const phaseReduce = (
 const turn = (state: TurnState, action: Action) => commonTurnReduce(phaseReduce(state, action), action);
 
 const logActions: Middleware = store => next => action => {
-	console.log(action);
+	console.log('Action ' + util.inspect(action) + '\n');
 	next(action);
 };
 
