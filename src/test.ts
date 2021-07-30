@@ -11,7 +11,10 @@ import j, {
 	chooseCardAction,
 	Estate,
 	addInterface,
-	gainAction
+	gainAction,
+	chooseSupplyCardAction,
+	askForSupplyCardAction,
+	drawAction
 } from './';
 import playCardAction from './actions/play-card'
 import ActionCard from './cards/action'
@@ -26,10 +29,12 @@ import TreasureCard from './cards/treasure';
 const tick = () => new Promise(resolve => process.nextTick(resolve))
 
 addInterface(store => next => async (action: Action) => {
+	const state = store.getState()
 	switch(action.type) {
-		case 'ask-for-card':
-			const state = store.getState()
+		case 'ask-for-card': {
 			const cards = state.player[action.from].filter(card => card instanceof action.cardType)
+
+			await tick()
 
 			if(cards.length > 0) {
 				const { card }: { card: Card } = await prompt({
@@ -44,11 +49,29 @@ addInterface(store => next => async (action: Action) => {
 
 				store.dispatch(chooseCardAction(card))
 			} else {
-				await tick()
 				store.dispatch(chooseCardAction(undefined))
 			}
 
 			break;
+		}
+		case 'ask-for-supply-card': {
+			const cardTypes = state.supply.keySeq().toArray()
+
+			await tick()
+
+			const { cardType }: { cardType: typeof Card } = await prompt({
+				type: 'select',
+				name: 'cardType',
+				message: 'pick a card',
+				choices: cardTypes.map((type, i) => ({
+					title: type.toString(),
+					value: type
+				}))
+			})
+
+			store.dispatch(chooseSupplyCardAction(cardType))
+			break;
+		}
 		default:
 			next(action)
 	}
@@ -68,28 +91,47 @@ async function main() {
 
 	j.dispatch(initPlayerAction())
 
-	while(j.getState().turn.actions > 0) {
-		const { card } = await j.dispatch(askForCardAction('hand', ActionCard))
-
-		if(card instanceof ActionCard) {
-			await j.dispatch(playCardAction(card))
-		} else {
-			console.log('no action cards in hard')
-			break
-		}
-	}
-
-	j.dispatch(phaseAction('buy'))
-
 	while(true) {
-		const { card } = await j.dispatch(askForCardAction('hand', TreasureCard))
+		j.dispatch(drawAction(5))
 
-		if(card instanceof TreasureCard) {
-			await j.dispatch(playCardAction(card))
-		} else {
-			console.log('no treasure cards in hard')
-			break
+		while(j.getState().turn.actions > 0) {
+			const { card } = await j.dispatch(askForCardAction('hand', ActionCard))
+
+			if(card instanceof ActionCard) {
+				await j.dispatch(playCardAction(card))
+			} else {
+				console.log('no action cards in hard')
+				break
+			}
 		}
+
+		j.dispatch(phaseAction('buy'))
+
+		while(true) {
+			const { card } = await j.dispatch(askForCardAction('hand', TreasureCard))
+
+			if(card instanceof TreasureCard) {
+				await j.dispatch(playCardAction(card))
+			} else {
+				console.log('no treasure cards in hard')
+				break
+			}
+		}
+
+		while(j.getState().turn.buys > 0) {
+			const { cardType } = await j.dispatch(askForSupplyCardAction())
+			const { turn } = j.getState()
+
+			if(cardType) {
+				if(cardType.cost(turn) <= turn.coins) {
+					j.dispatch(buyAction(cardType))
+				}
+			} else {
+				break
+			}
+		}
+
+		j.dispatch(phaseAction('cleanup'))
 	}
 }
 

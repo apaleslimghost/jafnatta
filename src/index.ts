@@ -31,6 +31,7 @@ import {
 	DrawAction,
 	ShuffleAction,
 	MoveCardAction,
+	ChooseSupplyCardAction,
 } from './types';
 import ExternalPromise from './external-promise';
 import ActionCard from './cards/action'
@@ -118,10 +119,21 @@ export const askForCardAction = (
 	return dispatch(waitForActionAction('choose-card'));
 };
 
+export const askForSupplyCardAction = (): ThunkResult<Promise<ChooseSupplyCardAction>> => async (dispatch: ThunkDispatch, getState) => {
+	dispatch({ type: 'ask-for-supply-card' });
+	return dispatch(waitForActionAction('choose-supply-card'));
+};
+
 export const chooseCardAction = (card: Card): ChooseCardAction => ({
 	type: 'choose-card',
 	card,
 });
+
+export const chooseSupplyCardAction = (cardType: typeof Card): ChooseSupplyCardAction => ({
+	type: 'choose-supply-card',
+	cardType,
+});
+
 
 export const moveCardAction = ({card, from, to}: ActionArgs<MoveCardAction>): MoveCardAction => ({
 	type: 'move-card',
@@ -247,13 +259,14 @@ const playCard: Middleware = ({dispatch}: {dispatch: ThunkDispatch}) => next => 
 	}
 };
 
-const buyCard: Middleware = store => next => action => {
+const buyCard: Middleware = store => next => (action: Action) => {
 	switch (action.type) {
 		case 'buy-card':
 			const { phase, buys } = store.getState().turn;
 			if (phase === 'buy' && buys >= 1) {
+				// let the phase reducer handle turn state changes before gaining
 				const val = next(action);
-				store.dispatch(gainAction(action.card));
+				store.dispatch(gainAction({ card: action.card }));
 				return val;
 			}
 			break;
@@ -275,7 +288,6 @@ const initPlayer: Middleware = store => next => action => {
 			store.dispatch(gainAction({ card: Estate }))
 			store.dispatch(gainAction({ card: Estate }))
 			store.dispatch(gainAction({ card: Estate }))
-			store.dispatch(drawAction(5))
 			break;
 		default:
 			return next(action);
