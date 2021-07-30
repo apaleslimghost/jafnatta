@@ -6,7 +6,7 @@ An engine for a deckbuilding game.
 
 ## Developing
 
-You'll need Node v12 or newer, and npm, which comes bundled with Node. Install the dependencies with `npm install`, then `npm start` will run the compiler testing interface, and watch for changes to the code.
+You'll need Node v12 or newer, and npm, which comes bundled with Node. Install the dependencies with `npm install`, then `npm start` will run the compiler & testing interface, and watch for changes to the code.
 
 ## Architecture
 
