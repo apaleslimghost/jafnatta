@@ -44,7 +44,10 @@ addInterface(store => next => async (action: Action) => {
 					choices: cards.map((card, i) => ({
 						title: card.toString(),
 						value: card
-					}))
+					})).concat({
+						title: 'nothing',
+						value: undefined
+					})
 				})
 
 				store.dispatch(chooseCardAction(card))
@@ -66,7 +69,10 @@ addInterface(store => next => async (action: Action) => {
 				choices: cardTypes.map((type, i) => ({
 					title: type.toString(),
 					value: type
-				}))
+				})).concat({
+					title: 'nothing',
+					value: undefined
+				})
 			})
 
 			store.dispatch(chooseSupplyCardAction(cardType))
@@ -90,49 +96,8 @@ async function main() {
 	]))
 
 	j.dispatch(initPlayerAction())
-
-	while(true) {
-		j.dispatch(drawAction(5))
-
-		while(j.getState().turn.actions > 0) {
-			const { card } = await j.dispatch(askForCardAction('hand', ActionCard))
-
-			if(card instanceof ActionCard) {
-				await j.dispatch(playCardAction(card))
-			} else {
-				console.log('no action cards in hard')
-				break
-			}
-		}
-
-		j.dispatch(phaseAction('buy'))
-
-		while(true) {
-			const { card } = await j.dispatch(askForCardAction('hand', TreasureCard))
-
-			if(card instanceof TreasureCard) {
-				await j.dispatch(playCardAction(card))
-			} else {
-				console.log('no treasure cards in hard')
-				break
-			}
-		}
-
-		while(j.getState().turn.buys > 0) {
-			const { cardType } = await j.dispatch(askForSupplyCardAction())
-			const { turn } = j.getState()
-
-			if(cardType) {
-				if(cardType.cost(turn) <= turn.coins) {
-					j.dispatch(buyAction(cardType))
-				}
-			} else {
-				break
-			}
-		}
-
-		j.dispatch(phaseAction('cleanup'))
-	}
+	j.dispatch(drawAction(5))
+	j.dispatch(phaseAction('action'))
 }
 
 main()

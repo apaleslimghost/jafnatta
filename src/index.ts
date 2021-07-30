@@ -314,6 +314,70 @@ const draw: Middleware = store => next => action => {
 	}
 }
 
+const phase: Middleware = store => next => async (action: Action) => {
+	switch(action.type) {
+		case 'phase':
+			console.log('PHASE', action)
+			// run the action so reducer changes phase
+			const val = next(action);
+
+			switch(action.phase) {
+				case 'action': {
+					while(store.getState().turn.actions > 0) {
+						const { card } = await store.dispatch(askForCardAction('hand', ActionCard))
+
+						if(card instanceof ActionCard) {
+							await store.dispatch(playCardAction(card))
+						} else {
+							break
+						}
+					}
+
+					store.dispatch(phaseAction('buy'))
+					break;
+				}
+				case 'buy': {
+					while(true) {
+						const { card } = await store.dispatch(askForCardAction('hand', TreasureCard))
+
+						if(card instanceof TreasureCard) {
+							await store.dispatch(playCardAction(card))
+						} else {
+							break
+						}
+					}
+
+					while(store.getState().turn.buys > 0) {
+						const { cardType } = await store.dispatch(askForSupplyCardAction())
+						const { turn } = store.getState()
+
+						if(cardType) {
+							if(cardType.cost(turn) <= turn.coins) {
+								store.dispatch(buyAction(cardType))
+							}
+						} else {
+							break
+						}
+					}
+
+					store.dispatch(phaseAction('cleanup'))
+
+					break;
+				}
+				case 'cleanup': {
+					// TODO discard in play cards
+					store.dispatch(drawAction(5))
+					store.dispatch(phaseAction('action'))
+					break;
+				}
+			}
+
+			return val
+		default:
+			next(action)
+	}
+}
+
 function gainCardReducer(state: State = defaultState, action: Action): State {
 	switch (action.type) {
 		case 'gain-card':
@@ -400,6 +464,7 @@ const store: Store<State, Action> & {dispatch: ThunkDispatch} = createStore(
 		buyCard,
 		initPlayer,
 		draw,
+		phase
 	)
 );
 
