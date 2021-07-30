@@ -1,35 +1,16 @@
 
 import {List} from 'immutable';
-import {PlayerState, Supply, State} from './types';
+import {PlayerState, Supply, State, TurnState, WaitState, Action} from './types';
 import {Card} from './cards/types';
+import * as util from 'util'
 
-const inspectTurn = JSON.stringify;
+util.inspect.styles.name = 'cyan'
 
-const inspectPlayer = (player: PlayerState): string =>
-	'{' +
-	Object.keys(player)
-		.map((k: keyof PlayerState) => `${k}: ${inspectCardArray(player[k])}`)
-		.join(', ') +
-	'}';
+export const inspectState = (state: State): string => 'State ' + util.inspect({
+	Turn: state.turn,
+	Player: state.player,
+	Supply: state.supply.map(cards => cards.length).toJS(),
+	Wait: { action: state.wait.action },
+}, {colors: true}) + '\n'
 
-const inspectCardArray = (cards: Array<Card>): string =>
-	'[' + cards.map(card => (card.constructor as typeof Card).cardName).join(', ') + ']';
-
-const inspectSupply = (supply: Supply): string =>
-	'{' +
-	List(supply)
-		.map(
-			([card, cards]: [typeof Card, Array<Card>]) =>
-				`${card.cardName}: ${cards.length}`
-		)
-		.join(', ') +
-	'}';
-
-const inspectState = (state: State): string => `State {
-	Turn: ${inspectTurn(state.turn)},
-	Player: ${inspectPlayer(state.player)},
-	Supply: ${inspectSupply(state.supply)},
-	Wait: ${JSON.stringify(state.wait)},
-}`
-
-export default inspectState;
+export const inspectAction = (action: Action): string => 'Action ' + util.inspect(action, {colors: true}) + '\n'

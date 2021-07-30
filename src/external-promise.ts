@@ -6,6 +6,7 @@
 export default class ExternalPromise<T> extends Promise<T> {
 	resolve(_: T | Promise<T>) {}
 	reject(_: Error) {}
+	label: string
 
 	static create<T>(): ExternalPromise<T> {
 		let resolve, reject;
