@@ -15,10 +15,12 @@ export class Card {
 		return this.cardName || this.name
 	}
 
+	static friendlyName() {
+		return noCase(this.toString())
+	}
+
 	toString() {
-		return noCase(
-			(this.constructor as typeof Card).toString()
-		)
+		return (this.constructor as typeof Card).friendlyName()
 	}
 
 	static [util.inspect.custom]() {

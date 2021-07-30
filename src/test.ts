@@ -40,7 +40,7 @@ addInterface(store => next => async (action: Action) => {
 				const { card }: { card: Card } = await prompt({
 					type: 'select',
 					name: 'card',
-					message: 'pick a card',
+					message: `pick a ${action.cardType.friendlyName()} to play`,
 					choices: cards.map((card, i) => ({
 						title: card.toString(),
 						value: card
@@ -65,9 +65,12 @@ addInterface(store => next => async (action: Action) => {
 			const { cardType }: { cardType: typeof Card } = await prompt({
 				type: 'select',
 				name: 'cardType',
-				message: 'pick a card',
-				choices: cardTypes.map((type, i) => ({
-					title: type.toString(),
+				message: 'choose a card to buy',
+				choices: cardTypes.filter(type => (
+					type.cost(store.getState().turn) <= action.maxValue
+					&& store.getState().supply.get(type).length > 0
+				)).map((type, i) => ({
+					title: type.toString() + ` $${type.cost(store.getState().turn)} (${store.getState().supply.get(type).length})`,
 					value: type
 				})).concat({
 					title: 'nothing',

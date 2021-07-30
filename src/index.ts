@@ -119,8 +119,8 @@ export const askForCardAction = (
 	return dispatch(waitForActionAction('choose-card'));
 };
 
-export const askForSupplyCardAction = (): ThunkResult<Promise<ChooseSupplyCardAction>> => async (dispatch: ThunkDispatch, getState) => {
-	dispatch({ type: 'ask-for-supply-card' });
+export const askForSupplyCardAction = (maxValue: number): ThunkResult<Promise<ChooseSupplyCardAction>> => async (dispatch: ThunkDispatch, getState) => {
+	dispatch({ type: 'ask-for-supply-card', maxValue });
 	return dispatch(waitForActionAction('choose-supply-card'));
 };
 
@@ -250,9 +250,10 @@ const playCard: Middleware = ({dispatch}: {dispatch: ThunkDispatch}) => next => 
 			);
 
 			if (cardAllowed) {
+				const val = next(action)
 				await dispatch(moveCardAction({ card: action.card, from: 'hand', to: 'inPlay' }))
 				await dispatch(makeTheCardDoAThing(action.card));
-				return next(action);
+				return val
 			}
 		default:
 			return next(action);
@@ -322,7 +323,7 @@ const phase: Middleware = store => next => async (action: Action) => {
 
 			switch(action.phase) {
 				case 'action': {
-					while(store.getState().turn.actions > 0) {
+					do {
 						const { card } = await store.dispatch(askForCardAction('hand', ActionCard))
 
 						if(card instanceof ActionCard) {
@@ -330,7 +331,7 @@ const phase: Middleware = store => next => async (action: Action) => {
 						} else {
 							break
 						}
-					}
+					} while(store.getState().turn.actions > 0)
 
 					store.dispatch(phaseAction('buy'))
 					break;
@@ -347,10 +348,10 @@ const phase: Middleware = store => next => async (action: Action) => {
 					}
 
 					while(store.getState().turn.buys > 0) {
-						const { cardType } = await store.dispatch(askForSupplyCardAction())
+						const { cardType } = await store.dispatch(askForSupplyCardAction(store.getState().turn.coins))
 						const { turn } = store.getState()
 
-						if(cardType) {
+						if(store.getState().supply.has(cardType)) {
 							if(cardType.cost(turn) <= turn.coins) {
 								store.dispatch(buyAction(cardType))
 							}
