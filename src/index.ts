@@ -1,5 +1,4 @@
 
-//TODO drawing & shuffling
 //TODO players
 
 import { createStore, combineReducers, applyMiddleware, Middleware as BaseMiddleware, Store } from 'redux';
@@ -471,7 +470,6 @@ const store: Store<State, Action> & {dispatch: ThunkDispatch} = createStore(
 	reducer,
 	applyMiddleware(
 		thunk,
-		logActions,
 		dynamicMiddlewaresInstance.enhancer,
 		playCard,
 		buyCard,
