@@ -26,7 +26,6 @@ import {
 	State,
 	GetState,
 	Phase,
-	ChooseCardFromHandAction,
 	ActionType,
 	ActionArgs,
 	DrawAction,
@@ -46,6 +45,10 @@ import {PlayableCard, VictoryValuedCard, CoinValuedCard, Card} from './cards/typ
 import * as util from 'util'
 import { inspectAction } from './inspect';
 import { stat } from 'fs';
+
+import { createDynamicMiddlewares } from 'redux-dynamic-middlewares'
+
+const dynamicMiddlewaresInstance = createDynamicMiddlewares<Middleware>()
 
 type ThunkResult<R> = ThunkAction<R, State, undefined, Action>;
 type ThunkDispatch = BaseThunkDispatch<State, undefined, Action>;
@@ -109,7 +112,8 @@ export const waitForActionAction = <T extends ActionType>(action: T): ThunkResul
 export const askForCardAction = (
 	from: keyof PlayerState,
 	cardType: typeof Card
-): ThunkResult<ExternalPromise<Action>> => (dispatch: ThunkDispatch, getState) => {
+): ThunkResult<ExternalPromise<ChooseCardAction>> => (dispatch: ThunkDispatch, getState) => {
+	console.log({cardType})
 	dispatch({ type: 'ask-for-card', from, cardType });
 	return dispatch(waitForActionAction('choose-card'));
 };
@@ -176,7 +180,7 @@ export class ThroneRoom extends ActionCard {
 
 	async onPlay(dispatch: ThunkDispatch) {
 		const { card } = await dispatch(
-			waitForActionAction('choose-card-from-hand')
+			askForCardAction('hand', ActionCard)
 		);
 
 		if(card instanceof PlayableCard) { // TODO choose only playable
@@ -369,9 +373,19 @@ const sliceReducers = combineReducers({ turn, supply, player, wait })
 
 const reducer: Reducer = (state, action) => gainCardReducer(sliceReducers(state, action), action)
 
-const store: Store<State> & {dispatch: ThunkDispatch} = createStore(
+const store: Store<State, Action> & {dispatch: ThunkDispatch} = createStore(
 	reducer,
-	applyMiddleware(thunk, logActions, playCard, buyCard, initPlayer, draw)
+	applyMiddleware(
+		thunk,
+		// logActions,
+		dynamicMiddlewaresInstance.enhancer,
+		playCard,
+		buyCard,
+		initPlayer,
+		draw,
+	)
 );
+
+export const addInterface = (middleware: Middleware) => dynamicMiddlewaresInstance.addMiddleware(middleware)
 
 export default store

@@ -21,6 +21,7 @@
     "immutable": "^3.8.1",
     "no-case": "^3.0.4",
     "redux": "^4.0.1",
+    "redux-dynamic-middlewares": "^2.0.0",
     "redux-thunk": "^2.3.0"
   }
 }

@@ -19,7 +19,6 @@ export type InitSupplyAction = {type: 'init-supply', cards: Array<typeof Card>};
 export type WaitForActionAction = {type: 'wait-for-action', action: string, promise: ExternalPromise<Action>};
 export type AskForCardAction = {type: 'ask-for-card', from: keyof PlayerState, cardType: typeof Card};
 export type ChooseCardAction = {type: 'choose-card', card: Card};
-export type ChooseCardFromHandAction = {type: 'choose-card-from-hand', card: Card};
 export type DrawAction = {type: 'draw', amount: number}
 export type MoveCardAction = {type: 'move-card', card: Card, from: keyof PlayerState, to: keyof PlayerState}
 export type ShuffleAction = {type: 'shuffle'}
@@ -37,7 +36,6 @@ export type Action =
 	| WaitForActionAction
 	| AskForCardAction
 	| ChooseCardAction
-	| ChooseCardFromHandAction
 	| DrawAction
 	| MoveCardAction
 	| ShuffleAction;

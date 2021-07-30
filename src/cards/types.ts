@@ -10,12 +10,12 @@ export class Card {
 	constructor() {}
 
 	static toString() {
-		return this.cardName
+		return this.cardName || this.name
 	}
 
 	toString() {
 		return noCase(
-			(this.constructor as typeof Card).cardName
+			(this.constructor as typeof Card).toString()
 		)
 	}
 
