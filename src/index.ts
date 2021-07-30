@@ -238,6 +238,7 @@ const playCard: Middleware = ({dispatch}: {dispatch: ThunkDispatch}) => next => 
 			);
 
 			if (cardAllowed) {
+				await dispatch(moveCardAction({ card: action.card, from: 'hand', to: 'inPlay' }))
 				await dispatch(makeTheCardDoAThing(action.card));
 				return next(action);
 			}
