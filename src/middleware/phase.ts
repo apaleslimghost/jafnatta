@@ -4,6 +4,7 @@ import { askForSupplyCardAction } from "../actions/ask-for-supply-card";
 import playCardAction from "../actions/play-card";
 import ActionCard from "../cards/action";
 import TreasureCard from "../cards/treasure";
+import { Colony, Province } from "../cards/victory";
 import { Action, Middleware } from "../types";
 
 const phase: Middleware = store => next => async (action: Action) => {
@@ -63,6 +64,7 @@ const phase: Middleware = store => next => async (action: Action) => {
 							to: 'discard'
 						}))
 					}
+
 					while(store.getState().player.hand.size) {
 						store.dispatch(moveCardAction({
 							card: store.getState().player.hand.first(),
@@ -71,6 +73,17 @@ const phase: Middleware = store => next => async (action: Action) => {
 						}))
 					}
 					store.dispatch(drawAction(5))
+
+					const { supply } = store.getState()
+					if(
+						supply.has(Province) && supply.get(Province).length === 0
+						|| supply.has(Colony) && supply.get(Colony).length === 0
+						|| supply.filter(pile => pile.length === 0).size === 3
+					) {
+						// TODO action for this
+						throw new Error('game ended lol')
+					}
+
 					store.dispatch(phaseAction('action'))
 					break;
 				}
