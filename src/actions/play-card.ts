@@ -1,5 +1,5 @@
 
-import { addActionAction, moveCardAction } from '..';
+import { addActionAction, moveCardAction } from '.';
 import ActionCard from '../cards/action';
 import TreasureCard from '../cards/treasure';
 import {Card, PlayableCard} from '../cards/types';

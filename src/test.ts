@@ -1,31 +1,13 @@
-import j, {
-	Woodcutter,
-	Silver,
-	Copper,
-	initPlayerAction,
-	initSupplyAction,
-	buyAction,
-	addCoinAction,
-	phaseAction,
-	askForCardAction,
-	chooseCardAction,
-	Estate,
-	addInterface,
-	gainAction,
-	chooseSupplyCardAction,
-	askForSupplyCardAction,
-	drawAction,
-	ThroneRoom
-} from './';
-import playCardAction from './actions/play-card'
-import ActionCard from './cards/action'
-
-import { inspectState } from './inspect';
-
+import j, { addInterface } from "."
+import { Card } from "./cards/types"
+import { Action } from "./types"
 import prompt from 'prompts'
-import { Card } from './cards/types';
-import { Action, AskForCardAction } from './types';
-import TreasureCard from './cards/treasure';
+import { chooseCardAction, chooseSupplyCardAction, drawAction, initPlayerAction, initSupplyAction, phaseAction } from "./actions"
+import { inspectState } from "./inspect"
+import { Copper } from "./cards/treasure"
+import { Estate } from "./cards/victory"
+import Woodcutter from "./cards/action/woodcutter"
+import ThroneRoom from "./cards/action/throne-room"
 
 const tick = () => new Promise(resolve => process.nextTick(resolve))
 

@@ -11,3 +11,12 @@ export default class VictoryCard extends VictoryValuedCard {
 		return -Infinity;
 	}
 }
+
+export class Estate extends VictoryCard {
+	static cardName = 'Estate';
+	static cost = () => 2;
+
+	getVictoryValue() {
+		return 2;
+	}
+}

@@ -46,7 +46,7 @@ export type Action =
 	| ShuffleAction;
 
 export type ActionType = Action['type'];
-
+export type ActionFromType<T extends ActionType> = Extract<Action, {type: T}>
 export type ActionArgs<T extends Action> = Omit<T, 'type'>
 
 export type WaitState = {

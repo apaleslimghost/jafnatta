@@ -1,7 +1,7 @@
 
 import {CoinValuedCard} from './types';
 import {Dispatch, GetState, State} from '../types';
-import {addCoinAction} from '../';
+import { addCoinAction } from '../actions';
 
 export default class TreasureCard extends CoinValuedCard {
 	static cardName = '';
@@ -14,5 +14,23 @@ export default class TreasureCard extends CoinValuedCard {
 
 	onPlay(dispatch: Dispatch, getState: GetState) {
 		dispatch(addCoinAction(this.getCoinValue(getState())));
+	}
+}
+
+export class Silver extends TreasureCard {
+	static cardName = 'Silver';
+	static cost = () => 3;
+
+	getCoinValue() {
+		return 2;
+	}
+}
+
+export class Copper extends TreasureCard {
+	static cardName = 'Copper';
+	static cost = () => 0;
+
+	getCoinValue() {
+		return 1;
 	}
 }
