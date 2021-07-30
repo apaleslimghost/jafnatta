@@ -369,7 +369,7 @@ const sliceReducers = combineReducers({ turn, supply, player, wait })
 
 const reducer: Reducer = (state, action) => gainCardReducer(sliceReducers(state, action), action)
 
-const store: Store & {dispatch: ThunkDispatch} = createStore(
+const store: Store<State> & {dispatch: ThunkDispatch} = createStore(
 	reducer,
 	applyMiddleware(thunk, logActions, playCard, buyCard, initPlayer, draw)
 );

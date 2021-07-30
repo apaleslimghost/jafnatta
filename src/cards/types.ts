@@ -13,14 +13,18 @@ export class Card {
 		return this.cardName
 	}
 
-	static [util.inspect.custom]() {
-		return this.cardName
-	}
-
-	[util.inspect.custom]() {
+	toString() {
 		return noCase(
 			(this.constructor as typeof Card).cardName
 		)
+	}
+
+	static [util.inspect.custom]() {
+		return this.toString()
+	}
+
+	[util.inspect.custom]() {
+		return this.toString()
 	}
 }
 

@@ -1,5 +1,6 @@
 
 import {Map} from 'immutable';
+import { Copper } from '.';
 import {Card, PlayableCard} from './cards/types';
 import ExternalPromise from './external-promise';
 import phases from './reducers/phases';
