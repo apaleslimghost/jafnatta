@@ -10,7 +10,7 @@ You'll need Node v12 or newer, and npm, which comes bundled with Node. Install t
 
 ## Architecture
 
-Jafnatta is written in Typescript, and uses Redux and Redux Thunks. Most of the game logic is implemented either as middleware (which can dispatch actions and control the incoming action), or as thunks (which can also dispactch actions, can be waited for by other actions, but can't control the dispact of the current action), with a handful of reducers (which can only alter the state).
+Jafnatta is written in Typescript, and uses Redux and Redux Thunks. Most of the game logic is implemented either as middleware (which can dispatch actions and control the incoming action), or as thunks (which can also dispactch actions, can be waited for by other actions, but can't control the dispatch of the current action), with a handful of reducers (which can only alter the state).
 
 The core engine is separate to any user interface. There's an interactive command line interface in [`test.ts`](./test.ts) that demonstrates how an interface communicates with the game engine:
 
