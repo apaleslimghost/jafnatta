@@ -26,6 +26,10 @@ In the future there'll be a split between a core engine and a player engine, to 
 - [ ] Game end conditions
 - [ ] Information hiding
 
+## What's up with the name
+
+"Jafnátta" means "equal in every direction" in Icelandic.
+
 ## Licence
 
 [Parity Public Licence, 7.0.0](licence.md)
