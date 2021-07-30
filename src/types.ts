@@ -11,7 +11,7 @@ export type AddActionAction = {type: 'add-action', amount: number};
 export type AddBuyAction = {type: 'add-buy', amount: number};
 export type AddCoinAction = {type: 'add-coin', amount: number};
 export type PhaseAction = {type: 'phase', phase: Phase};
-export type GainAction = {type: 'gain-card', card: typeof Card};
+export type GainAction = {type: 'gain-card', card: typeof Card, where?: keyof PlayerState};
 export type BuyAction = {type: 'buy-card', card: typeof Card};
 export type InitPlayerAction = {type: 'init-player'};
 export type InitSupplyAction = {type: 'init-supply', cards: Array<typeof Card>};
@@ -19,6 +19,7 @@ export type WaitForActionAction = {type: 'wait-for-action', action: string, prom
 export type AskForCardAction = {type: 'ask-for-card', from: keyof PlayerState, cardType: typeof Card};
 export type ChooseCardAction = {type: 'choose-card', card: Card};
 export type ChooseCardFromHandAction = {type: 'choose-card-from-hand', card: Card};
+export type DrawAction = {type: 'draw', amount: number}
 
 export type Action =
 	| PlayCardAction
@@ -33,9 +34,12 @@ export type Action =
 	| WaitForActionAction
 	| AskForCardAction
 	| ChooseCardAction
-	| ChooseCardFromHandAction;
+	| ChooseCardFromHandAction
+	| DrawAction;
 
 export type ActionType = Action['type'];
+
+export type ActionArgs<T extends Action> = Omit<T, 'type'>
 
 export type WaitState = {
 	action?: string,

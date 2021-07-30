@@ -27,6 +27,8 @@ import {
 	Phase,
 	ChooseCardFromHandAction,
 	ActionType,
+	ActionArgs,
+	DrawAction,
 } from './types';
 import ExternalPromise from './external-promise';
 import ActionCard from './cards/action'
@@ -40,6 +42,7 @@ import {PlayableCard, VictoryValuedCard, CoinValuedCard, Card} from './cards/typ
 
 import * as util from 'util'
 import { inspectAction } from './inspect';
+import { stat } from 'fs';
 
 type ThunkResult<R> = ThunkAction<R, State, undefined, Action>;
 type ThunkDispatch = BaseThunkDispatch<State, undefined, Action>;
@@ -64,15 +67,21 @@ export const phaseAction = (phase: Phase): PhaseAction => ({
 	phase,
 });
 
-export const gainAction = (card: typeof Card): GainAction => ({
+export const gainAction = ({card, where = 'discard'}: ActionArgs<GainAction>): GainAction => ({
 	type: 'gain-card',
 	card,
+	where
 });
 
 export const buyAction = (card: typeof Card): BuyAction => ({
 	type: 'buy-card',
 	card,
 });
+
+export const drawAction = (amount: number): DrawAction => ({
+	type: 'draw',
+	amount
+})
 
 export const initPlayerAction = (): InitPlayerAction => ({
 	type: 'init-player',
@@ -233,6 +242,26 @@ const buyCard: Middleware = store => next => action => {
 	}
 };
 
+const initPlayer: Middleware = store => next => action => {
+	switch(action.type) {
+		case 'init-player':
+			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
+			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
+			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
+			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
+			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
+			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
+			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
+			store.dispatch(gainAction({ card: Estate, where: 'deck' }))
+			store.dispatch(gainAction({ card: Estate, where: 'deck' }))
+			store.dispatch(gainAction({ card: Estate, where: 'deck' }))
+			store.dispatch(drawAction(5))
+			break;
+		default:
+			return next(action);
+	}
+}
+
 function gainCardReducer(state: State = defaultState, action: Action): State {
 	switch (action.type) {
 		case 'gain-card':
@@ -241,7 +270,7 @@ function gainCardReducer(state: State = defaultState, action: Action): State {
 				...state,
 				player: {
 					...state.player,
-					discard: state.player.discard.concat([card]),
+					[action.where]: state.player[action.where].concat([card]),
 				},
 				supply: state.supply.set(action.card, remaining),
 			};
@@ -269,22 +298,12 @@ function player(
 	action: Action
 ): PlayerState {
 	switch (action.type) {
-		case 'init-player':
+		case 'draw':
 			return {
 				...state,
-				deck: [
-					new Copper(),
-					new Copper(),
-					new Copper(),
-					new Copper(),
-					new Copper(),
-					new Copper(),
-					new Copper(),
-					new Estate(),
-					new Estate(),
-					new Estate(),
-				],
-			};
+				deck: state.deck.slice(action.amount),
+				hand: state.hand.concat(state.deck.slice(0, action.amount))
+			}
 		default:
 			return state;
 	}
@@ -315,7 +334,7 @@ const reducer: Reducer = (state, action) => gainCardReducer(sliceReducers(state,
 
 const store: Store & {dispatch: ThunkDispatch} = createStore(
 	reducer,
-	applyMiddleware(thunk, logActions, playCard, buyCard)
+	applyMiddleware(thunk, logActions, playCard, buyCard, initPlayer)
 );
 
 export default store
