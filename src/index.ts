@@ -193,16 +193,17 @@ export class ThroneRoom extends ActionCard {
 		const { card } = await dispatch(
 			askForCardAction('hand', ActionCard)
 		);
-		console.log(card)
 
-		if(!(card instanceof ActionCard)) throw new AssertionError({
-			message: 'Should have returned an ActionCard',
-			expected: ActionCard,
-			actual: card.constructor
-		})
+		if(card) {
+			if(!(card instanceof ActionCard)) throw new AssertionError({
+				message: 'Should have returned an ActionCard',
+				expected: ActionCard,
+				actual: card.constructor
+			})
 
-		await dispatch(playCardAction(card, {fromCard: true}));
-		await dispatch(playCardAction(card, {fromCard: true}));
+			await dispatch(playCardAction(card, {fromCard: true}));
+			await dispatch(playCardAction(card, {fromCard: true}));
+		}
 	}
 }
 
