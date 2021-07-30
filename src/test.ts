@@ -14,7 +14,8 @@ import j, {
 	gainAction,
 	chooseSupplyCardAction,
 	askForSupplyCardAction,
-	drawAction
+	drawAction,
+	ThroneRoom
 } from './';
 import playCardAction from './actions/play-card'
 import ActionCard from './cards/action'
@@ -36,12 +37,12 @@ addInterface(store => next => async (action: Action) => {
 
 			await tick()
 
-			if(cards.length > 0) {
+			if(cards.size > 0) {
 				const { card }: { card: Card } = await prompt({
 					type: 'select',
 					name: 'card',
 					message: `pick a ${action.cardType.friendlyName()} to play`,
-					choices: cards.map((card, i) => ({
+					choices: cards.toArray().map((card, i) => ({
 						title: card.toString(),
 						value: card
 					})).concat({
@@ -95,7 +96,8 @@ async function main() {
 	j.dispatch(initSupplyAction([
 		Copper,
 		Estate,
-		Woodcutter
+		Woodcutter,
+		ThroneRoom
 	]))
 
 	j.dispatch(initPlayerAction())

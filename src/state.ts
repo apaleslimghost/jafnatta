@@ -1,6 +1,6 @@
 
 import {State, Supply, TurnState, PlayerState} from './types'
-import { Map, List } from 'immutable';
+import { Map, List, OrderedSet } from 'immutable';
 
 export const defaultTurnState: TurnState = {
 	actions: 1,
@@ -10,10 +10,10 @@ export const defaultTurnState: TurnState = {
 };
 
 export const defaultPlayerState: PlayerState = {
-	hand: [],
-	deck: [],
-	discard: [],
-	inPlay: [],
+	hand: OrderedSet(),
+	deck: OrderedSet(),
+	discard: OrderedSet(),
+	inPlay: OrderedSet(),
 };
 
 export const defaultSupply: Supply = Map();

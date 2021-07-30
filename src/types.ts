@@ -1,13 +1,14 @@
 
-import {Map} from 'immutable';
-import { Copper } from '.';
+import { Middleware as BaseMiddleware } from 'redux';
+import {Map, OrderedSet} from 'immutable';
+import {ThunkAction, ThunkDispatch as BaseThunkDispatch} from 'redux-thunk';
 import {Card, PlayableCard} from './cards/types';
 import ExternalPromise from './external-promise';
 import phases from './reducers/phases';
 
 export type Phase = keyof typeof phases;
 
-export type PlayCardAction = {type: 'play-card', card: PlayableCard};
+export type PlayCardAction = {type: 'play-card', card: PlayableCard, };
 export type AddActionAction = {type: 'add-action', amount: number};
 export type AddBuyAction = {type: 'add-buy', amount: number};
 export type AddCoinAction = {type: 'add-coin', amount: number};
@@ -63,10 +64,10 @@ export type TurnState = {
 export type Supply = Map<typeof Card, Array<Card>>;
 
 export type PlayerState = {
-	deck: Array<Card>,
-	hand: Array<Card>,
-	discard: Array<Card>,
-	inPlay: Array<Card>,
+	deck: OrderedSet<Card>,
+	hand: OrderedSet<Card>,
+	discard: OrderedSet<Card>,
+	inPlay: OrderedSet<Card>,
 };
 
 export type State = {
@@ -78,7 +79,10 @@ export type State = {
 
 export type GetState = () => State;
 export type PromiseAction = Promise<Action>;
-export type ThunkAction = (dispatch: Dispatch, getState: GetState) => any;
 export type Dispatch = (
 	action: Action | PromiseAction | Array<Action>
 ) => any;
+
+export type ThunkResult<R> = ThunkAction<R, State, undefined, Action>;
+export type ThunkDispatch = BaseThunkDispatch<State, undefined, Action>;
+export type Middleware = BaseMiddleware<{}, State, ThunkDispatch>;

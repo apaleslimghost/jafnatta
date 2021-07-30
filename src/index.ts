@@ -1,10 +1,10 @@
 
 //TODO players
 
-import { createStore, combineReducers, applyMiddleware, Middleware as BaseMiddleware, Store } from 'redux';
+import { createStore, combineReducers, applyMiddleware, Store } from 'redux';
 import { Reducer, AnyAction, Dispatch } from 'redux'
-import { Map, List } from 'immutable';
-import thunk, {ThunkAction, ThunkDispatch as BaseThunkDispatch} from 'redux-thunk';
+import { Map, List, OrderedSet } from 'immutable';
+import thunk from 'redux-thunk';
 import shuffle from 'array-shuffle'
 import {
 	Action,
@@ -31,6 +31,9 @@ import {
 	ShuffleAction,
 	MoveCardAction,
 	ChooseSupplyCardAction,
+	ThunkResult,
+	ThunkDispatch,
+	Middleware
 } from './types';
 import ExternalPromise from './external-promise';
 import ActionCard from './cards/action'
@@ -51,9 +54,6 @@ import { AssertionError } from 'assert';
 
 const dynamicMiddlewaresInstance = createDynamicMiddlewares<Middleware>()
 
-type ThunkResult<R> = ThunkAction<R, State, undefined, Action>;
-type ThunkDispatch = BaseThunkDispatch<State, undefined, Action>;
-type Middleware = BaseMiddleware<{}, State, ThunkDispatch>;
 
 export const addActionAction = (amount: number): AddActionAction => ({
 	type: 'add-action',
@@ -193,6 +193,7 @@ export class ThroneRoom extends ActionCard {
 		const { card } = await dispatch(
 			askForCardAction('hand', ActionCard)
 		);
+		console.log(card)
 
 		if(!(card instanceof ActionCard)) throw new AssertionError({
 			message: 'Should have returned an ActionCard',
@@ -200,8 +201,8 @@ export class ThroneRoom extends ActionCard {
 			actual: card.constructor
 		})
 
-		dispatch(playCardAction(card));
-		dispatch(playCardAction(card));
+		await dispatch(playCardAction(card, {fromCard: true}));
+		await dispatch(playCardAction(card, {fromCard: true}));
 	}
 }
 
@@ -217,12 +218,6 @@ function commonTurnReduce(
 	}
 }
 
-const allowedCards: { [phase in Phase]: Array<typeof Card> } = {
-	action: [ActionCard],
-	buy: [TreasureCard],
-	cleanup: [],
-};
-
 const phaseReduce = (
 	state: TurnState = defaultTurnState,
 	action: Action
@@ -233,30 +228,6 @@ const turn = (state: TurnState, action: Action) => commonTurnReduce(phaseReduce(
 const logActions: Middleware = store => next => action => {
 	console.log(inspectAction(action));
 	next(action);
-};
-
-const makeTheCardDoAThing = (card: PlayableCard): ThunkResult<void | Promise<void>> => (
-	dispatch: ThunkDispatch,
-	getState: GetState
-) => card.onPlay(dispatch, getState);
-
-const playCard: Middleware = ({dispatch}: {dispatch: ThunkDispatch}) => next => async action => {
-	switch (action.type) {
-		case 'play-card':
-			const { phase }: { phase: Phase } = store.getState().turn;
-			const cardAllowed = allowedCards[phase].some(
-				type => action.card instanceof type
-			);
-
-			if (cardAllowed) {
-				const val = next(action)
-				await dispatch(moveCardAction({ card: action.card, from: 'hand', to: 'inPlay' }))
-				await dispatch(makeTheCardDoAThing(action.card));
-				return val
-			}
-		default:
-			return next(action);
-	}
 };
 
 const buyCard: Middleware = store => next => (action: Action) => {
@@ -298,12 +269,12 @@ const draw: Middleware = store => next => action => {
 	switch (action.type) {
 		case 'draw':
 			for(let i = 0; i < action.amount; i++) {
-				if(store.getState().player.deck.length === 0) {
+				if(store.getState().player.deck.size === 0) {
 					store.dispatch(shuffleAction())
 				}
 
 				store.dispatch(moveCardAction({
-					card: store.getState().player.deck[0],
+					card: store.getState().player.deck.first(),
 					from: 'deck',
 					to: 'hand'
 				}))
@@ -364,16 +335,16 @@ const phase: Middleware = store => next => async (action: Action) => {
 					break;
 				}
 				case 'cleanup': {
-					while(store.getState().player.inPlay.length) {
+					while(store.getState().player.inPlay.size) {
 						store.dispatch(moveCardAction({
-							card: store.getState().player.inPlay[0],
+							card: store.getState().player.inPlay.first(),
 							from: 'inPlay',
 							to: 'discard'
 						}))
 					}
-					while(store.getState().player.hand.length) {
+					while(store.getState().player.hand.size) {
 						store.dispatch(moveCardAction({
-							card: store.getState().player.hand[0],
+							card: store.getState().player.hand.first(),
 							from: 'hand',
 							to: 'discard'
 						}))
@@ -429,14 +400,14 @@ function player(
 		case 'shuffle':
 			return {
 				...state,
-				deck: shuffle(state.discard),
-				discard: []
+				deck: OrderedSet(shuffle(state.discard.toArray())),
+				discard: OrderedSet()
 			}
 		case 'move-card':
 			return {
 				...state,
-				[action.from]: state[action.from].filter(c => c !== action.card),
-				[action.to]: state[action.to].concat([action.card])
+				[action.from]: state[action.from].delete(action.card),
+				[action.to]: state[action.to].add(action.card)
 			}
 		default:
 			return state;
@@ -471,7 +442,6 @@ const store: Store<State, Action> & {dispatch: ThunkDispatch} = createStore(
 	applyMiddleware(
 		thunk,
 		dynamicMiddlewaresInstance.enhancer,
-		playCard,
 		buyCard,
 		initPlayer,
 		draw,

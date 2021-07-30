@@ -7,8 +7,6 @@ export default function action(
 	action: Action
 ): TurnState {
 	switch (action.type) {
-		case 'play-card':
-			return { ...state, actions: state.actions - 1 };
 		case 'add-action':
 			return { ...state, actions: state.actions + action.amount };
 		case 'add-buy':
