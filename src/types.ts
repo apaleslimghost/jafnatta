@@ -20,6 +20,8 @@ export type AskForCardAction = {type: 'ask-for-card', from: keyof PlayerState, c
 export type ChooseCardAction = {type: 'choose-card', card: Card};
 export type ChooseCardFromHandAction = {type: 'choose-card-from-hand', card: Card};
 export type DrawAction = {type: 'draw', amount: number}
+export type MoveCardAction = {type: 'move-card', card: Card, from: keyof PlayerState, to: keyof PlayerState}
+export type ShuffleAction = {type: 'shuffle'}
 
 export type Action =
 	| PlayCardAction
@@ -35,7 +37,9 @@ export type Action =
 	| AskForCardAction
 	| ChooseCardAction
 	| ChooseCardFromHandAction
-	| DrawAction;
+	| DrawAction
+	| MoveCardAction
+	| ShuffleAction;
 
 export type ActionType = Action['type'];
 

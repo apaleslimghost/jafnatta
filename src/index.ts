@@ -2,10 +2,11 @@
 //TODO drawing & shuffling
 //TODO players
 
-import { createStore, combineReducers, applyMiddleware, Middleware, Store } from 'redux';
+import { createStore, combineReducers, applyMiddleware, Middleware as BaseMiddleware, Store } from 'redux';
 import { Reducer, AnyAction, Dispatch } from 'redux'
 import { Map, List } from 'immutable';
 import thunk, {ThunkAction, ThunkDispatch as BaseThunkDispatch} from 'redux-thunk';
+import shuffle from 'array-shuffle'
 import {
 	Action,
 	PlayCardAction,
@@ -29,6 +30,8 @@ import {
 	ActionType,
 	ActionArgs,
 	DrawAction,
+	ShuffleAction,
+	MoveCardAction,
 } from './types';
 import ExternalPromise from './external-promise';
 import ActionCard from './cards/action'
@@ -46,6 +49,7 @@ import { stat } from 'fs';
 
 type ThunkResult<R> = ThunkAction<R, State, undefined, Action>;
 type ThunkDispatch = BaseThunkDispatch<State, undefined, Action>;
+type Middleware = BaseMiddleware<{}, State, ThunkDispatch>;
 
 export const addActionAction = (amount: number): AddActionAction => ({
 	type: 'add-action',
@@ -114,6 +118,13 @@ export const chooseCardAction = (card: Card): ChooseCardAction => ({
 	type: 'choose-card',
 	card,
 });
+
+export const moveCardAction = ({card, from, to}: ActionArgs<MoveCardAction>): MoveCardAction => ({
+	type: 'move-card',
+	card, from, to
+})
+
+export const shuffleAction = (): ShuffleAction => ({type: 'shuffle'})
 
 export class Silver extends TreasureCard {
 	static cardName = 'Silver';
@@ -245,20 +256,40 @@ const buyCard: Middleware = store => next => action => {
 const initPlayer: Middleware = store => next => action => {
 	switch(action.type) {
 		case 'init-player':
-			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
-			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
-			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
-			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
-			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
-			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
-			store.dispatch(gainAction({ card: Copper, where: 'deck' }))
-			store.dispatch(gainAction({ card: Estate, where: 'deck' }))
-			store.dispatch(gainAction({ card: Estate, where: 'deck' }))
-			store.dispatch(gainAction({ card: Estate, where: 'deck' }))
+			store.dispatch(gainAction({ card: Copper }))
+			store.dispatch(gainAction({ card: Copper }))
+			store.dispatch(gainAction({ card: Copper }))
+			store.dispatch(gainAction({ card: Copper }))
+			store.dispatch(gainAction({ card: Copper }))
+			store.dispatch(gainAction({ card: Copper }))
+			store.dispatch(gainAction({ card: Copper }))
+			store.dispatch(gainAction({ card: Estate }))
+			store.dispatch(gainAction({ card: Estate }))
+			store.dispatch(gainAction({ card: Estate }))
 			store.dispatch(drawAction(5))
 			break;
 		default:
 			return next(action);
+	}
+}
+
+const draw: Middleware = store => next => action => {
+	switch (action.type) {
+		case 'draw':
+			for(let i = 0; i < action.amount; i++) {
+				if(store.getState().player.deck.length === 0) {
+					store.dispatch(shuffleAction())
+				}
+
+				store.dispatch(moveCardAction({
+					card: store.getState().player.deck[0],
+					from: 'deck',
+					to: 'hand'
+				}))
+
+			}
+		default:
+			next(action);
 	}
 }
 
@@ -298,11 +329,17 @@ function player(
 	action: Action
 ): PlayerState {
 	switch (action.type) {
-		case 'draw':
+		case 'shuffle':
 			return {
 				...state,
-				deck: state.deck.slice(action.amount),
-				hand: state.hand.concat(state.deck.slice(0, action.amount))
+				deck: shuffle(state.discard),
+				discard: []
+			}
+		case 'move-card':
+			return {
+				...state,
+				[action.from]: state[action.from].filter(c => c !== action.card),
+				[action.to]: state[action.to].concat([action.card])
 			}
 		default:
 			return state;
@@ -334,7 +371,7 @@ const reducer: Reducer = (state, action) => gainCardReducer(sliceReducers(state,
 
 const store: Store & {dispatch: ThunkDispatch} = createStore(
 	reducer,
-	applyMiddleware(thunk, logActions, playCard, buyCard, initPlayer)
+	applyMiddleware(thunk, logActions, playCard, buyCard, initPlayer, draw)
 );
 
 export default store
