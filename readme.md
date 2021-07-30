@@ -29,3 +29,5 @@ In the future there'll be a split between a core engine and a player engine, to 
 ## Licence
 
 [Parity Public Licence, 7.0.0](licence.md)
+
+[Castle icon](https://thenounproject.com/AliceNoir/collection/castle/?i=2831664) created by [Alice Noir](https://thenounproject.com/AliceNoir) on [Noun Project](https://thenounproject.com)
