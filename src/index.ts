@@ -317,7 +317,6 @@ const draw: Middleware = store => next => action => {
 const phase: Middleware = store => next => async (action: Action) => {
 	switch(action.type) {
 		case 'phase':
-			console.log('PHASE', action)
 			// run the action so reducer changes phase
 			const val = next(action);
 
@@ -365,7 +364,20 @@ const phase: Middleware = store => next => async (action: Action) => {
 					break;
 				}
 				case 'cleanup': {
-					// TODO discard in play cards
+					while(store.getState().player.inPlay.length) {
+						store.dispatch(moveCardAction({
+							card: store.getState().player.inPlay[0],
+							from: 'inPlay',
+							to: 'discard'
+						}))
+					}
+					while(store.getState().player.hand.length) {
+						store.dispatch(moveCardAction({
+							card: store.getState().player.hand[0],
+							from: 'hand',
+							to: 'discard'
+						}))
+					}
 					store.dispatch(drawAction(5))
 					store.dispatch(phaseAction('action'))
 					break;
