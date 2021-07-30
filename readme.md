@@ -1,6 +1,6 @@
-<div align="center">
+<h1 align="center">
 	<img src="etc/logo.svg" alt="Jafnatta" width="400">
-</div>
+</h1>
 
 An engine for a deckbuilding game.
 
