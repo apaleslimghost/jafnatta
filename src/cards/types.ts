@@ -3,6 +3,8 @@ import {State, TurnState, Dispatch, GetState} from '../types';
 import { noCase } from 'no-case'
 import * as util from 'util'
 
+// TODO cards with multiple types
+
 export class Card {
 	static cardName: string
 	static text: string

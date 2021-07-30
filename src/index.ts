@@ -47,6 +47,7 @@ import { inspectAction } from './inspect';
 import { stat } from 'fs';
 
 import { createDynamicMiddlewares } from 'redux-dynamic-middlewares'
+import { AssertionError } from 'assert';
 
 const dynamicMiddlewaresInstance = createDynamicMiddlewares<Middleware>()
 
@@ -100,7 +101,7 @@ export const initSupplyAction = (
 
 type ActionFromType<T extends ActionType> = Extract<Action, {type: T}>
 
-export const waitForActionAction = <T extends ActionType>(action: T): ThunkResult<ExternalPromise<ActionFromType<T>>> => (
+export const waitForActionAction = <T extends ActionType>(action: T): ThunkResult<Promise<ActionFromType<T>>> => (
 	dispatch: ThunkDispatch,
 	getState
 ) => {
@@ -112,8 +113,7 @@ export const waitForActionAction = <T extends ActionType>(action: T): ThunkResul
 export const askForCardAction = (
 	from: keyof PlayerState,
 	cardType: typeof Card
-): ThunkResult<ExternalPromise<ChooseCardAction>> => (dispatch: ThunkDispatch, getState) => {
-	console.log({cardType})
+): ThunkResult<Promise<ChooseCardAction>> => async (dispatch: ThunkDispatch, getState) => {
 	dispatch({ type: 'ask-for-card', from, cardType });
 	return dispatch(waitForActionAction('choose-card'));
 };
@@ -183,10 +183,14 @@ export class ThroneRoom extends ActionCard {
 			askForCardAction('hand', ActionCard)
 		);
 
-		if(card instanceof PlayableCard) { // TODO choose only playable
-			dispatch(playCardAction(card));
-			dispatch(playCardAction(card));
-		}
+		if(!(card instanceof ActionCard)) throw new AssertionError({
+			message: 'Should have returned an ActionCard',
+			expected: ActionCard,
+			actual: card.constructor
+		})
+
+		dispatch(playCardAction(card));
+		dispatch(playCardAction(card));
 	}
 }
 
@@ -225,7 +229,7 @@ const makeTheCardDoAThing = (card: PlayableCard): ThunkResult<void | Promise<voi
 	getState: GetState
 ) => card.onPlay(dispatch, getState);
 
-const playCard: Middleware = ({dispatch}: {dispatch: ThunkDispatch}) => next => action => {
+const playCard: Middleware = ({dispatch}: {dispatch: ThunkDispatch}) => next => async action => {
 	switch (action.type) {
 		case 'play-card':
 			const { phase }: { phase: Phase } = store.getState().turn;
@@ -234,7 +238,7 @@ const playCard: Middleware = ({dispatch}: {dispatch: ThunkDispatch}) => next => 
 			);
 
 			if (cardAllowed) {
-				dispatch(makeTheCardDoAThing(action.card));
+				await dispatch(makeTheCardDoAThing(action.card));
 				return next(action);
 			}
 		default:
@@ -377,7 +381,7 @@ const store: Store<State, Action> & {dispatch: ThunkDispatch} = createStore(
 	reducer,
 	applyMiddleware(
 		thunk,
-		// logActions,
+		logActions,
 		dynamicMiddlewaresInstance.enhancer,
 		playCard,
 		buyCard,
