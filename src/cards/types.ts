@@ -1,5 +1,6 @@
 
 import {State, TurnState, Dispatch, GetState} from '../types';
+import { noCase } from 'no-case'
 import * as util from 'util'
 
 export class Card {
@@ -12,8 +13,14 @@ export class Card {
 		return this.cardName
 	}
 
+	static [util.inspect.custom]() {
+		return this.cardName
+	}
+
 	[util.inspect.custom]() {
-		return (this.constructor as typeof Card).cardName
+		return noCase(
+			(this.constructor as typeof Card).cardName
+		)
 	}
 }
 

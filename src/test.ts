@@ -16,7 +16,10 @@ import ActionCard from './cards/action'
 
 import { inspectState } from './inspect';
 
-j.subscribe(() => console.log(inspectState(j.getState()) + '\n' + '═'.repeat(process.stdout.columns) + '\n'));
+j.subscribe(() => console.log(
+	inspectState(j.getState()) + '\n'
+	+ '═'.repeat(process.stdout.columns) + '\n'
+));
 
 j.dispatch(initSupplyAction([
 	Copper,
