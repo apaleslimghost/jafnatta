@@ -12,7 +12,6 @@ export const inspectState = (state: State): string => 'State ' + util.inspect({
 		Object.entries(state.player).map(([k, v]) => [k, v.toJS()])
 	),
 	Supply: state.supply.map(cards => cards.length).toJS(),
-	Wait: { action: state.wait.action },
 }, {colors: true}) + '\n'
 
 export const inspectAction = (action: Action): string => 'Action ' + util.inspect(action, {colors: true}) + '\n'

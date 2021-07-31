@@ -22,5 +22,4 @@ export const defaultState: State = {
 	turn: defaultTurnState,
 	player: defaultPlayerState,
 	supply: defaultSupply,
-	wait: {},
 };

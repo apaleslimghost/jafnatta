@@ -2,7 +2,7 @@ import j, { addInterface } from "."
 import { Card } from "./cards/types"
 import { Action } from "./types"
 import prompt from 'prompts'
-import { chooseCardAction, chooseSupplyCardAction, drawAction, initPlayerAction, initSupplyAction, phaseAction } from "./actions"
+import { drawAction, initPlayerAction, initSupplyAction, phaseAction } from "./actions"
 import { inspectState } from "./inspect"
 import { Copper } from "./cards/treasure"
 import { Estate } from "./cards/victory"
@@ -33,9 +33,9 @@ addInterface(store => next => async (action: Action) => {
 					})
 				})
 
-				store.dispatch(chooseCardAction(card))
+				action.promise.resolve(card instanceof Card ? card : undefined)
 			} else {
-				store.dispatch(chooseCardAction(undefined))
+				action.promise.resolve(undefined)
 			}
 
 			break;
@@ -61,7 +61,7 @@ addInterface(store => next => async (action: Action) => {
 				})
 			})
 
-			store.dispatch(chooseSupplyCardAction(cardType))
+			action.promise.resolve(cardType instanceof Function ? cardType : undefined)
 			break;
 		}
 		default:

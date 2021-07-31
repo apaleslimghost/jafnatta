@@ -12,17 +12,11 @@ export default class ThroneRoom extends ActionCard {
 	static cost = () => 4;
 
 	async onPlay(dispatch: ThunkDispatch) {
-		const { card } = await dispatch(
+		const card = await dispatch(
 			askForCardAction('hand', ActionCard)
 		);
 
 		if(card) {
-			if(!(card instanceof ActionCard)) throw new AssertionError({
-				message: 'Should have returned an ActionCard',
-				expected: ActionCard,
-				actual: card.constructor
-			})
-
 			await dispatch(playCardAction(card, {fromCard: true}));
 			await dispatch(playCardAction(card, {fromCard: true}));
 		}

@@ -1,11 +1,13 @@
 import { Card } from "../cards/types";
-import { ChooseCardAction, PlayerState, ThunkResult } from "../types";
+import ExternalPromise from "../external-promise";
+import { PlayerState, ThunkResult } from "../types";
 import { waitForActionAction } from "./wait-for-action";
 
-export const askForCardAction = (
+export const askForCardAction = <C extends typeof Card>(
 	from: keyof PlayerState,
-	cardType: typeof Card
-): ThunkResult<Promise<ChooseCardAction>> => async (dispatch, getState) => {
-	dispatch({ type: 'ask-for-card', from, cardType });
-	return dispatch(waitForActionAction('choose-card'));
+	cardType: C
+): ThunkResult<Promise<InstanceType<C> | undefined>> => async (dispatch, getState) => {
+	const promise = ExternalPromise.create<InstanceType<C> | undefined>()
+	dispatch({ type: 'ask-for-card', from, cardType, promise });
+	return promise
 };

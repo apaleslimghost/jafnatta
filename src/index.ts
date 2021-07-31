@@ -13,7 +13,6 @@ import { State, Action, Middleware, ThunkDispatch } from "./types";
 import turn from "./reducers/turn";
 import supply from "./reducers/supply";
 import player from "./reducers/player";
-import wait from "./reducers/wait";
 import drawCards from "./middleware/draw-cards";
 
 const dynamicMiddlewaresInstance = createDynamicMiddlewares<Middleware>()
@@ -24,7 +23,7 @@ const logActions: Middleware = store => next => action => {
 	next(action);
 };
 
-const sliceReducers = combineReducers({ turn, supply, player, wait })
+const sliceReducers = combineReducers({ turn, supply, player })
 
 const reducer: Reducer = (state, action) => gainCardReducer(sliceReducers(state, action), action)
 

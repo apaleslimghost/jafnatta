@@ -18,10 +18,8 @@ export type BuyAction = {type: 'buy-card', card: typeof Card};
 export type InitPlayerAction = {type: 'init-player'};
 export type InitSupplyAction = {type: 'init-supply', cards: Array<typeof Card>};
 export type WaitForActionAction = {type: 'wait-for-action', action: string, promise: ExternalPromise<Action>};
-export type AskForCardAction = {type: 'ask-for-card', from: keyof PlayerState, cardType: typeof Card};
-export type AskForSupplyCardAction = {type: 'ask-for-supply-card', maxValue: number}
-export type ChooseCardAction = {type: 'choose-card', card: Card};
-export type ChooseSupplyCardAction = {type: 'choose-supply-card', cardType: typeof Card};
+export type AskForCardAction = {type: 'ask-for-card', from: keyof PlayerState, cardType: typeof Card, promise: ExternalPromise<Card>};
+export type AskForSupplyCardAction = {type: 'ask-for-supply-card', maxValue: number, promise: ExternalPromise<typeof Card>}
 export type DrawAction = {type: 'draw', amount: number}
 export type MoveCardAction = {type: 'move-card', card: Card, from: keyof PlayerState, to: keyof PlayerState}
 export type ShuffleAction = {type: 'shuffle'}
@@ -38,9 +36,7 @@ export type Action =
 	| InitSupplyAction
 	| WaitForActionAction
 	| AskForCardAction
-	| ChooseCardAction
 	| AskForSupplyCardAction
-	| ChooseSupplyCardAction
 	| DrawAction
 	| MoveCardAction
 	| ShuffleAction;
@@ -74,7 +70,6 @@ export type State = {
 	turn: TurnState,
 	supply: Supply,
 	player: PlayerState,
-	wait: WaitState,
 }
 
 export type GetState = () => State;

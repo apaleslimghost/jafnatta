@@ -1,5 +1,5 @@
 import { Card } from "../cards/types";
-import { ActionArgs, AddActionAction, AddBuyAction, AddCoinAction, BuyAction, ChooseCardAction, ChooseSupplyCardAction, DrawAction, GainAction, InitPlayerAction, InitSupplyAction, MoveCardAction, Phase, PhaseAction, ShuffleAction } from "../types";
+import { ActionArgs, AddActionAction, AddBuyAction, AddCoinAction, BuyAction, DrawAction, GainAction, InitPlayerAction, InitSupplyAction, MoveCardAction, Phase, PhaseAction, ShuffleAction } from "../types";
 
 export const initSupplyAction = (
 	cards: Array<typeof Card>
@@ -43,17 +43,6 @@ export const drawAction = (amount: number): DrawAction => ({
 
 export const initPlayerAction = (): InitPlayerAction => ({
 	type: 'init-player',
-});
-
-
-export const chooseCardAction = (card: Card): ChooseCardAction => ({
-	type: 'choose-card',
-	card,
-});
-
-export const chooseSupplyCardAction = (cardType: typeof Card): ChooseSupplyCardAction => ({
-	type: 'choose-supply-card',
-	cardType,
 });
 
 export const moveCardAction = ({card, from, to}: ActionArgs<MoveCardAction>): MoveCardAction => ({

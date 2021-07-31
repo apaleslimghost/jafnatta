@@ -16,9 +16,9 @@ const phase: Middleware = store => next => async (action: Action) => {
 			switch(action.phase) {
 				case 'action': {
 					do {
-						const { card } = await store.dispatch(askForCardAction('hand', ActionCard))
+						const card = await store.dispatch(askForCardAction('hand', ActionCard))
 
-						if(card instanceof ActionCard) {
+						if(card) {
 							await store.dispatch(playCardAction(card))
 						} else {
 							break
@@ -30,9 +30,9 @@ const phase: Middleware = store => next => async (action: Action) => {
 				}
 				case 'buy': {
 					while(true) {
-						const { card } = await store.dispatch(askForCardAction('hand', TreasureCard))
+						const card = await store.dispatch(askForCardAction('hand', TreasureCard))
 
-						if(card instanceof TreasureCard) {
+						if(card) {
 							await store.dispatch(playCardAction(card))
 						} else {
 							break
@@ -40,7 +40,7 @@ const phase: Middleware = store => next => async (action: Action) => {
 					}
 
 					while(store.getState().turn.buys > 0) {
-						const { cardType } = await store.dispatch(askForSupplyCardAction(store.getState().turn.coins))
+						const cardType = await store.dispatch(askForSupplyCardAction(store.getState().turn.coins))
 						const { turn } = store.getState()
 
 						if(store.getState().supply.has(cardType)) {
