@@ -9,6 +9,8 @@ export class Card {
 	static cardName: string
 	static text: string
 	static cost(_: TurnState): number { return 0 }
+	static numberInSupply(_: State): number { return 10 }
+
 	constructor() {}
 
 	static toString() {

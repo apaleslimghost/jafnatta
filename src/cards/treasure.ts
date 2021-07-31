@@ -29,6 +29,7 @@ export class Silver extends TreasureCard {
 export class Copper extends TreasureCard {
 	static cardName = 'Copper';
 	static cost = () => 0;
+	static numberInSupply = () => 60
 
 	getCoinValue() {
 		return 1;
