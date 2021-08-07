@@ -22,7 +22,7 @@ export class Estate extends VictoryCard {
 }
 
 export class Duchy extends VictoryCard {
-	static cardName = 'Estate';
+	static cardName = 'Duchy';
 	static cost = () => 5;
 
 	getVictoryValue() {
@@ -31,7 +31,7 @@ export class Duchy extends VictoryCard {
 }
 
 export class Province extends VictoryCard {
-	static cardName = 'Estate';
+	static cardName = 'Province';
 	static cost = () => 8;
 
 	getVictoryValue() {
@@ -40,7 +40,7 @@ export class Province extends VictoryCard {
 }
 
 export class Colony extends VictoryCard {
-	static cardName = 'Estate';
+	static cardName = 'Colony';
 	static cost = () => 11;
 
 	getVictoryValue() {
