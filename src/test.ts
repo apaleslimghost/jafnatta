@@ -10,6 +10,7 @@ import Woodcutter from "./cards/action/woodcutter"
 import ThroneRoom from "./cards/action/throne-room"
 import { Village } from "./cards/action"
 import Smithy from "./cards/action/smithy"
+import Workshop from "./cards/action/workshop"
 
 const tick = () => new Promise(resolve => process.nextTick(resolve))
 
@@ -83,7 +84,8 @@ async function main() {
 		Woodcutter,
 		ThroneRoom,
 		Village,
-		Smithy
+		Smithy,
+		Workshop
 	]))
 
 	j.dispatch(initPlayerAction())
