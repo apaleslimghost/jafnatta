@@ -8,6 +8,7 @@ import { Copper } from "./cards/treasure"
 import { Estate } from "./cards/victory"
 import Woodcutter from "./cards/action/woodcutter"
 import ThroneRoom from "./cards/action/throne-room"
+import { Village } from "./cards/action"
 
 const tick = () => new Promise(resolve => process.nextTick(resolve))
 
@@ -79,7 +80,8 @@ async function main() {
 		Copper,
 		Estate,
 		Woodcutter,
-		ThroneRoom
+		ThroneRoom,
+		Village
 	]))
 
 	j.dispatch(initPlayerAction())
