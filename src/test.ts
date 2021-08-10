@@ -11,6 +11,13 @@ import ThroneRoom from "./cards/action/throne-room"
 import { Chapel, Village } from "./cards/action"
 
 const tick = () => new Promise(resolve => process.nextTick(resolve))
+const onState = ({aborted}: {aborted: boolean}) => {
+	if(aborted) {
+		process.stderr.write('\u001B[?25h');
+		console.log(`\ngoodbye! ${process.env.WATCH ? 'jafnatta will run again on file change. ctrl-C again to exit compiler' : ''}`)
+		process.exit(2)
+	}
+}
 
 addInterface(store => next => async (action: Action) => {
 	const state = store.getState()
@@ -34,7 +41,8 @@ addInterface(store => next => async (action: Action) => {
 						})).concat({
 							title: 'nothing',
 							value: undefined
-						})
+						}),
+						onState
 					})
 
 					action.promise.resolve(card instanceof Card ? [card] : [])
