@@ -8,37 +8,61 @@ import { Copper } from "./cards/treasure"
 import { Estate } from "./cards/victory"
 import Woodcutter from "./cards/action/woodcutter"
 import ThroneRoom from "./cards/action/throne-room"
-import { Village } from "./cards/action"
+import { Chapel, Village } from "./cards/action"
 import Smithy from "./cards/action/smithy"
 import Workshop from "./cards/action/workshop"
 
 const tick = () => new Promise(resolve => process.nextTick(resolve))
+const onState = ({aborted}: {aborted: boolean}) => {
+	if(aborted) {
+		process.stderr.write('\u001B[?25h');
+		console.log(`\ngoodbye! ${process.env.WATCH ? 'jafnatta will run again on file change. ctrl-C again to exit compiler' : ''}`)
+		process.exit(2)
+	}
+}
 
 addInterface(store => next => async (action: Action) => {
 	const state = store.getState()
+
 	switch(action.type) {
 		case 'ask-for-card': {
-			const cards = state.player[action.from].filter(card => card instanceof action.cardType)
+			const availableCards = state.player[action.from].filter(card => card instanceof action.cardType)
 
 			await tick()
 
-			if(cards.size > 0) {
-				const { card }: { card: Card } = await prompt({
-					type: 'select',
-					name: 'card',
-					message: `pick a ${action.cardType.friendlyName()} to play`,
-					choices: cards.toArray().map((card, i) => ({
-						title: card.toString(),
-						value: card
-					})).concat({
-						title: 'nothing',
-						value: undefined
-					})
-				})
 
-				action.promise.resolve(card instanceof Card ? card : undefined)
+			if(availableCards.size > 0) {
+				if(action.amount === 1) {
+					const { card }: { card: Card } = await prompt({
+						type: 'select',
+						name: 'card',
+						message: `pick a ${action.cardType.friendlyName()} to play`,
+						choices: availableCards.toArray().map((card, i) => ({
+							title: card.toString(),
+							value: card
+						})).concat({
+							title: 'nothing',
+							value: undefined
+						}),
+						onState
+					})
+
+					action.promise.resolve(card instanceof Card ? [card] : [])
+				} else {
+					const { cards }: { cards: Card[] } = await prompt({
+						type: 'multiselect',
+						name: 'cards',
+						message: `pick up to ${action.amount} ${action.cardType.friendlyName()} to play`,
+						choices: availableCards.toArray().map((card, i) => ({
+							title: card.toString(),
+							value: card
+						}))
+					})
+
+					action.promise.resolve(cards)
+				}
 			} else {
-				action.promise.resolve(undefined)
+				action.promise.resolve([])
 			}
 
 			break;
@@ -73,6 +97,8 @@ addInterface(store => next => async (action: Action) => {
 })
 
 async function main() {
+
+
 	j.subscribe(() => console.log(
 		inspectState(j.getState()) + '\n'
 		+ '═'.repeat(process.stdout.columns) + '\n'
@@ -84,8 +110,12 @@ async function main() {
 		Woodcutter,
 		ThroneRoom,
 		Village,
+<<<<<<< HEAD
 		Smithy,
 		Workshop
+=======
+		Chapel
+>>>>>>> ee237e4fd8dfd0cff13b96c20ac456f2c809f0d7
 	]))
 
 	j.dispatch(initPlayerAction())
