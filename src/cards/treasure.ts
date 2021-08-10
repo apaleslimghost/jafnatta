@@ -17,6 +17,15 @@ export default class TreasureCard extends CoinValuedCard {
 	}
 }
 
+export class Gold extends TreasureCard {
+	static cardName = 'Gold';
+	static cost = () => 6;
+
+	getCoinValue() {
+		return 3;
+	}
+}
+
 export class Silver extends TreasureCard {
 	static cardName = 'Silver';
 	static cost = () => 3;

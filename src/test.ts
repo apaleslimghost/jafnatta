@@ -9,6 +9,8 @@ import { Estate } from "./cards/victory"
 import Woodcutter from "./cards/action/woodcutter"
 import ThroneRoom from "./cards/action/throne-room"
 import { Chapel, Village } from "./cards/action"
+import Smithy from "./cards/action/smithy"
+import Workshop from "./cards/action/workshop"
 
 const tick = () => new Promise(resolve => process.nextTick(resolve))
 const onState = ({aborted}: {aborted: boolean}) => {
@@ -108,7 +110,12 @@ async function main() {
 		Woodcutter,
 		ThroneRoom,
 		Village,
+<<<<<<< HEAD
+		Smithy,
+		Workshop
+=======
 		Chapel
+>>>>>>> ee237e4fd8dfd0cff13b96c20ac456f2c809f0d7
 	]))
 
 	j.dispatch(initPlayerAction())
