@@ -2,7 +2,7 @@
 import { Card, PlayableCard } from './types';
 import { GetState, ThunkDispatch } from '../types';
 import { askForCardAction } from '../actions/ask-for-card';
-import { trashAction, addActionAction, drawAction } from '../actions';
+import { trashAction, addActionAction, drawAction, moveCardAction } from '../actions';
 import { ThunkAction } from 'redux-thunk';
 
 export default class ActionCard extends PlayableCard {
@@ -36,5 +36,23 @@ export class Chapel extends ActionCard {
 		for(const card of cards) {
 			dispatch(trashAction(card, 'hand'))
 		}
+	}
+}
+
+export class Cellar extends ActionCard {
+	static cost = () => 2
+
+	async onPlay(dispatch: ThunkDispatch) {
+		const cards = await dispatch(askForCardAction(
+			'hand',
+			Card,
+			Infinity
+		))
+
+		for(const card of cards) {
+			dispatch(moveCardAction({ card, from: 'hand', to: 'discard' }))
+		}
+
+		dispatch(drawAction(cards.length))
 	}
 }
