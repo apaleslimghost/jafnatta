@@ -12,7 +12,7 @@ export default class ThroneRoom extends ActionCard {
 	static cost = () => 4;
 
 	async onPlay(dispatch: ThunkDispatch) {
-		const card = await dispatch(
+		const [card] = await dispatch(
 			askForCardAction('hand', ActionCard)
 		);
 
