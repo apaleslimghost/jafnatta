@@ -15,7 +15,6 @@ export default class ActionCard extends PlayableCard {
 }
 
 export class Village extends ActionCard {
-	static cardName = 'Village'
 	static cost = () => 3
 
 	onPlay(dispatch: ThunkDispatch) {
