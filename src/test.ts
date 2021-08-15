@@ -26,7 +26,7 @@ addInterface(store => next => async (action: Action) => {
 
 	switch(action.type) {
 		case 'ask-for-card': {
-			const availableCards = state.player[action.from].filter(card => card instanceof action.cardType)
+			const availableCards = state.player[action.from].filter(card => card.is(action.cardType))
 
 			await tick()
 

@@ -10,6 +10,7 @@
 		],
 		"noImplicitAny": true,
 		"outDir": "lib",
-		"esModuleInterop": true
+		"esModuleInterop": true,
+		"experimentalDecorators": true
 	}
 }

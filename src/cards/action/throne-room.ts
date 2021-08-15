@@ -2,10 +2,11 @@ import { AssertionError } from "assert";
 import { askForCardAction } from "../../actions/ask-for-card";
 import playCardAction from "../../actions/play-card";
 import { ThunkDispatch } from "../../types";
-import ActionCard from "../action";
+import { ActionCard, Card, type } from "../types";
 
-export default class ThroneRoom extends ActionCard {
-	static cardName = 'Throne Room';
+@type(ActionCard)
+export default class ThroneRoom extends Card {
+	static displayName = 'Throne Room';
 	static text = `
 		You may play an Action card from your hand twice.
 	`;

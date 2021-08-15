@@ -1,24 +1,21 @@
 
-import {CoinValuedCard} from './types';
+import { Card, TreasureCard, type } from './types';
 import {Dispatch, GetState, State} from '../types';
 import { addCoinAction } from '../actions';
 
-export default class TreasureCard extends CoinValuedCard {
-	static cardName = '';
-	static text = '';
-	static cost = () => Infinity;
-
-	getCoinValue(state: State) {
-		return -Infinity;
-	}
-
+@type(TreasureCard)
+class BasicTreasureCard extends Card {
+	// TODO split onPlay into action phase and buy phase play? how would that work
 	onPlay(dispatch: Dispatch, getState: GetState) {
 		dispatch(addCoinAction(this.getCoinValue(getState())));
 	}
+
+	getCoinValue(state: State) {
+		return NaN
+	}
 }
 
-export class Gold extends TreasureCard {
-	static cardName = 'Gold';
+export class Gold extends BasicTreasureCard {
 	static cost = () => 6;
 
 	getCoinValue() {
@@ -26,8 +23,7 @@ export class Gold extends TreasureCard {
 	}
 }
 
-export class Silver extends TreasureCard {
-	static cardName = 'Silver';
+export class Silver extends BasicTreasureCard {
 	static cost = () => 3;
 
 	getCoinValue() {
@@ -35,8 +31,7 @@ export class Silver extends TreasureCard {
 	}
 }
 
-export class Copper extends TreasureCard {
-	static cardName = 'Copper';
+export class Copper extends BasicTreasureCard {
 	static cost = () => 0;
 	static numberInSupply = () => 60
 

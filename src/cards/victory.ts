@@ -1,19 +1,16 @@
 
-import {VictoryValuedCard} from './types';
+import { Card, type, VictoryCard } from './types';
 import {State} from '../types';
 
-export default class VictoryCard extends VictoryValuedCard {
-	static cardName = '';
-	static text = '';
-	static cost = () => Infinity;
-
+@type(VictoryCard)
+export default class BasicVictoryCard extends Card {
 	getVictoryValue(state: State) {
 		return -Infinity;
 	}
 }
 
-export class Estate extends VictoryCard {
-	static cardName = 'Estate';
+export class Estate extends BasicVictoryCard {
+	static displayName = 'Estate';
 	static cost = () => 2;
 
 	getVictoryValue() {
@@ -21,8 +18,8 @@ export class Estate extends VictoryCard {
 	}
 }
 
-export class Duchy extends VictoryCard {
-	static cardName = 'Duchy';
+export class Duchy extends BasicVictoryCard {
+	static displayName = 'Duchy';
 	static cost = () => 5;
 
 	getVictoryValue() {
@@ -30,8 +27,8 @@ export class Duchy extends VictoryCard {
 	}
 }
 
-export class Province extends VictoryCard {
-	static cardName = 'Province';
+export class Province extends BasicVictoryCard {
+	static displayName = 'Province';
 	static cost = () => 8;
 
 	getVictoryValue() {
@@ -39,8 +36,8 @@ export class Province extends VictoryCard {
 	}
 }
 
-export class Colony extends VictoryCard {
-	static cardName = 'Colony';
+export class Colony extends BasicVictoryCard {
+	static displayName = 'Colony';
 	static cost = () => 11;
 
 	getVictoryValue() {

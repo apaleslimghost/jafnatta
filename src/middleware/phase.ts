@@ -2,8 +2,7 @@ import { buyAction, drawAction, moveCardAction, phaseAction } from "../actions";
 import { askForCardAction } from "../actions/ask-for-card";
 import { askForSupplyCardAction } from "../actions/ask-for-supply-card";
 import playCardAction from "../actions/play-card";
-import ActionCard from "../cards/action";
-import TreasureCard from "../cards/treasure";
+import { ActionCard, TreasureCard } from "../cards/types";
 import { Colony, Province } from "../cards/victory";
 import { Action, Middleware } from "../types";
 
