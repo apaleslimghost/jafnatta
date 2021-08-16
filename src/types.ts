@@ -24,6 +24,7 @@ export type DrawAction = {type: 'draw', amount: number}
 export type MoveCardAction = {type: 'move-card', card: Card, from: keyof PlayerState, to: keyof PlayerState}
 export type ShuffleAction = {type: 'shuffle'}
 export type TrashAction = {type: 'trash', card: Card, from: keyof PlayerState}
+export type ChooseOneAction = {type: 'choose-one', choices: { [key: string]: string }, promise: ExternalPromise<string | number> }
 
 export type Action =
 	| PlayCardAction
@@ -41,7 +42,8 @@ export type Action =
 	| DrawAction
 	| MoveCardAction
 	| ShuffleAction
-	| TrashAction;
+	| TrashAction
+	| ChooseOneAction
 
 export type ActionType = Action['type'];
 export type ActionFromType<T extends ActionType> = Extract<Action, {type: T}>
