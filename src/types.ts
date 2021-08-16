@@ -1,6 +1,6 @@
 
 import { Middleware as BaseMiddleware } from 'redux';
-import {Map, OrderedSet, Set} from 'immutable';
+import { Map, OrderedSet, Set } from 'immutable';
 import {ThunkAction, ThunkDispatch as BaseThunkDispatch} from 'redux-thunk';
 import {Card, PlayableCard} from './cards/types';
 import ExternalPromise from './external-promise';
@@ -8,7 +8,7 @@ import phases from './reducers/phases';
 
 export type Phase = keyof typeof phases;
 
-export type PlayCardAction = {type: 'play-card', card: PlayableCard, };
+export type PlayCardAction = {type: 'play-card', card: PlayableCard };
 export type AddActionAction = {type: 'add-action', amount: number};
 export type AddBuyAction = {type: 'add-buy', amount: number};
 export type AddCoinAction = {type: 'add-coin', amount: number};
@@ -24,6 +24,7 @@ export type DrawAction = {type: 'draw', amount: number}
 export type MoveCardAction = {type: 'move-card', card: Card, from: keyof PlayerState, to: keyof PlayerState}
 export type ShuffleAction = {type: 'shuffle'}
 export type TrashAction = {type: 'trash', card: Card, from: keyof PlayerState}
+export type ChooseOneAction = {type: 'choose-one', choices: { [key: string]: string }, promise: ExternalPromise<string | number> }
 
 export type Action =
 	| PlayCardAction
@@ -41,7 +42,8 @@ export type Action =
 	| DrawAction
 	| MoveCardAction
 	| ShuffleAction
-	| TrashAction;
+	| TrashAction
+	| ChooseOneAction
 
 export type ActionType = Action['type'];
 export type ActionFromType<T extends ActionType> = Extract<Action, {type: T}>

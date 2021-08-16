@@ -9,7 +9,10 @@ export default function supply(state: State, action: Action): Supply {
 	switch (action.type) {
 		case 'init-supply':
 			return action.cards.reduce(
-				(supply, card) => supply.set(card, repeat(card.numberInSupply(state), () => new card())),
+				(supply, card) => supply.set(card, repeat(
+					card.numberInSupply(state),
+					() => new (card as any)() // "Card" is abstract but whatever lol
+				)),
 				state.supply
 			);
 		default:

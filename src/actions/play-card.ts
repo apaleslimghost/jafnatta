@@ -1,9 +1,7 @@
 
-import { addActionAction, moveCardAction } from '.';
-import ActionCard from '../cards/action';
-import TreasureCard from '../cards/treasure';
-import {Card, PlayableCard} from '../cards/types';
-import {GetState, Phase, PlayCardAction, ThunkDispatch, ThunkResult} from '../types';
+import { addActionAction, moveCardAction } from '.'
+import { Card, ActionCard, TreasureCard, PlayableCard } from '../cards/types'
+import {GetState, Phase, PlayCardAction, ThunkDispatch, ThunkResult} from '../types'
 
 const allowedCards: { [phase in Phase]: Array<typeof Card> } = {
 	action: [ActionCard],
@@ -11,13 +9,13 @@ const allowedCards: { [phase in Phase]: Array<typeof Card> } = {
 	cleanup: [],
 };
 
-const makeTheCardDoAThing = (card: PlayableCard): ThunkResult<void | Promise<void>> => (
+const makeTheCardDoAThing = (card: ActionCard): ThunkResult<void | Promise<void>> => (
 	dispatch: ThunkDispatch,
 	getState: GetState
 ) => card.onPlay(dispatch, getState);
 
 const playCardAction = (
-	card: PlayableCard,
+	card: Card & PlayableCard,
 	{ fromCard = false } = {}
 ): ThunkResult<Promise<PlayCardAction>> => async (
 	dispatch: ThunkDispatch,
@@ -25,11 +23,11 @@ const playCardAction = (
 ) => {
 	const {phase} = getState().turn
 	const cardAllowed = allowedCards[phase].some(
-		type => card instanceof type
+		type => card.is(type)
 	);
 
 	if (cardAllowed) {
-		if(!fromCard && card instanceof ActionCard) {
+		if(!fromCard && card.is(ActionCard)) {
 			dispatch(addActionAction(-1))
 		}
 

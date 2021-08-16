@@ -1,9 +1,10 @@
 import { ThunkDispatch } from "../../types";
-import ActionCard from "../action";
 import { drawAction } from '../../actions';
+import { ActionCard, Card, type } from "../types";
 
-export default class Smithy extends ActionCard {
-	static cardName = 'Smithy';
+@type(ActionCard)
+export default class Smithy extends Card {
+	static displayName = 'Smithy';
 	static text = `
 		+3 Cards
 	`;

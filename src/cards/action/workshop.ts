@@ -1,10 +1,11 @@
 import { ThunkDispatch } from "../../types";
-import ActionCard from "../action";
 import { drawAction, gainAction } from '../../actions';
 import { askForSupplyCardAction } from "../../actions/ask-for-supply-card";
+import { ActionCard, Card, type } from "../types";
 
-export default class Workshop extends ActionCard {
-	static cardName = 'Workshop';
+@type(ActionCard)
+export default class Workshop extends Card {
+	static displayName = 'Workshop';
 	static text = `
 		gain
 	`;

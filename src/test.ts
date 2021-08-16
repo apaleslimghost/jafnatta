@@ -11,6 +11,7 @@ import ThroneRoom from "./cards/action/throne-room"
 import { Chapel, Cellar, Village } from "./cards/action"
 import Smithy from "./cards/action/smithy"
 import Workshop from "./cards/action/workshop"
+import Nobles from "./cards/nobles"
 
 const tick = () => new Promise(resolve => process.nextTick(resolve))
 const onState = ({aborted}: {aborted: boolean}) => {
@@ -26,7 +27,7 @@ addInterface(store => next => async (action: Action) => {
 
 	switch(action.type) {
 		case 'ask-for-card': {
-			const availableCards = state.player[action.from].filter(card => card instanceof action.cardType)
+			const availableCards = state.player[action.from].filter(card => card.is(action.cardType))
 
 			await tick()
 
@@ -91,6 +92,20 @@ addInterface(store => next => async (action: Action) => {
 			action.promise.resolve(cardType instanceof Function ? cardType : undefined)
 			break;
 		}
+		case 'choose-one': {
+			const { choice } = await prompt({
+				type: 'select',
+				name: 'choice',
+				message: 'choose one',
+				choices: Object.entries(action.choices).map(
+					([value, title]) => ({value, title})
+				)
+			})
+
+			action.promise.resolve(choice)
+
+			break
+		}
 		default:
 			next(action)
 	}
@@ -113,7 +128,8 @@ async function main() {
 		Smithy,
 		Workshop,
 		Chapel,
-		Cellar
+		Cellar,
+		Nobles
 	]))
 
 	j.dispatch(initPlayerAction())

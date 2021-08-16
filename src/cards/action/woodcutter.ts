@@ -1,9 +1,10 @@
 import { addBuyAction, addCoinAction } from "../../actions";
 import { ThunkDispatch } from "../../types";
-import ActionCard from "../action";
+import { ActionCard, Card, type } from "../types";
 
-export default class Woodcutter extends ActionCard {
-	static cardName = 'Woodcutter';
+@type(ActionCard)
+export default class Woodcutter extends Card {
+	static displayName = 'Woodcutter';
 	static text = `
 		+1 Buy
 		+$2

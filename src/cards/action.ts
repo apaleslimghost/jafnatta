@@ -1,20 +1,12 @@
 
-import { Card, PlayableCard } from './types';
+import { Card, ActionCard, type } from './types';
 import { GetState, ThunkDispatch } from '../types';
 import { askForCardAction } from '../actions/ask-for-card';
 import { trashAction, addActionAction, drawAction, moveCardAction } from '../actions';
 import { ThunkAction } from 'redux-thunk';
 
-export default class ActionCard extends PlayableCard {
-	static cardName = '';
-	static text = '';
-	static cost = () => Infinity;
-	onPlay(dispatch: ThunkDispatch, getState: GetState) {
-		throw new Error('unimplemented');
-	}
-}
-
-export class Village extends ActionCard {
+@type(ActionCard)
+export class Village extends Card {
 	static cost = () => 3
 
 	onPlay(dispatch: ThunkDispatch) {
@@ -23,7 +15,8 @@ export class Village extends ActionCard {
 	}
 }
 
-export class Chapel extends ActionCard {
+@type(ActionCard)
+export class Chapel extends Card {
 	static cost = () => 2
 
 	async onPlay(dispatch: ThunkDispatch, getState: GetState) {
@@ -39,7 +32,8 @@ export class Chapel extends ActionCard {
 	}
 }
 
-export class Cellar extends ActionCard {
+@type(ActionCard)
+export class Cellar extends Card {
 	static cost = () => 2
 
 	async onPlay(dispatch: ThunkDispatch) {
