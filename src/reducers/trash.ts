@@ -6,6 +6,7 @@ export default (state: State, action: Action) => {
 			...state,
 			trash: state.trash.add(action.card),
 			player: {
+				...state.player,
 				[action.from]: state.player[action.from].remove(action.card)
 			}
 		}

@@ -4,8 +4,8 @@ import { Action } from "./types"
 import prompt from 'prompts'
 import { drawAction, initPlayerAction, initSupplyAction, phaseAction } from "./actions"
 import { inspectState } from "./inspect"
-import { Copper } from "./cards/treasure"
-import { Estate } from "./cards/victory"
+import { Copper, Gold, Silver } from "./cards/treasure"
+import { Duchy, Estate, Province } from "./cards/victory"
 import Woodcutter from "./cards/action/woodcutter"
 import ThroneRoom from "./cards/action/throne-room"
 import { Chapel, Cellar, Village } from "./cards/action"
@@ -129,7 +129,11 @@ async function main() {
 		Workshop,
 		Chapel,
 		Cellar,
-		Nobles
+		Nobles,
+		Gold,
+		Silver,
+		Province,
+		Duchy
 	]))
 
 	j.dispatch(initPlayerAction())
