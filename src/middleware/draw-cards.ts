@@ -4,22 +4,20 @@ import { Action, Middleware } from "../types";
 const drawCards: Middleware = store => next => (action: Action) => {
 	switch (action.type) {
 		case 'draw':
-			// TODO Dominion 2E shuffling rules (optional?)
+			if(action.amount > store.getState().player.deck.size) {
+				store.dispatch(shuffleAction())
+			}
+
 			for(let i = 0; i < action.amount; i++) {
-				if(store.getState().player.deck.size === 0) {
-					if(store.getState().player.discard.size === 0) {
-						break
-					}
+				const card = store.getState().player.deck.first()
 
-					store.dispatch(shuffleAction())
+				if(card) {
+					store.dispatch(moveCardAction({
+						card,
+						from: 'deck',
+						to: 'hand'
+					}))
 				}
-
-				store.dispatch(moveCardAction({
-					card: store.getState().player.deck.first(),
-					from: 'deck',
-					to: 'hand'
-				}))
-
 			}
 		default:
 			next(action);

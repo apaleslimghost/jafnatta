@@ -11,7 +11,9 @@ export default function player(
 		case 'shuffle':
 			return {
 				...state,
-				deck: OrderedSet(shuffle(state.discard.toArray())),
+				deck: state.deck.concat(
+					OrderedSet(shuffle(state.discard.toArray()))
+				).toOrderedSet(),
 				discard: OrderedSet()
 			}
 		case 'move-card':
