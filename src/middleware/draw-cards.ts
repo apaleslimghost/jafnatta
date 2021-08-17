@@ -7,6 +7,10 @@ const drawCards: Middleware = store => next => (action: Action) => {
 			// TODO Dominion 2E shuffling rules (optional?)
 			for(let i = 0; i < action.amount; i++) {
 				if(store.getState().player.deck.size === 0) {
+					if(store.getState().player.discard.size === 0) {
+						break
+					}
+
 					store.dispatch(shuffleAction())
 				}
 

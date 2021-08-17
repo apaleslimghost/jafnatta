@@ -47,6 +47,7 @@ const store: Store<State, Action> & {dispatch: ThunkDispatch} = createStore(
 	reducer,
 	applyMiddleware(
 		thunk,
+		logActions,
 		dynamicMiddlewaresInstance.enhancer,
 		buyCard,
 		initPlayer,
