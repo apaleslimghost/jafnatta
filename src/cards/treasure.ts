@@ -5,7 +5,6 @@ import { addCoinAction } from '../actions';
 
 @type(TreasureCard)
 class BasicTreasureCard extends Card {
-	// TODO split onPlay into action phase and buy phase play? how would that work
 	onPlay(dispatch: Dispatch, getState: GetState) {
 		dispatch(addCoinAction(this.getCoinValue(getState())));
 	}
