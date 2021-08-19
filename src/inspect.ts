@@ -8,9 +8,11 @@ util.inspect.styles.name = 'cyan'
 
 export const inspectState = (state: State): string => 'State ' + util.inspect({
 	Turn: state.turn,
-	Player: Object.fromEntries(
-		Object.entries(state.player).map(([k, v]) => [k, v.toJS()])
-	),
+	Players: state.players.map(player =>
+		Object.fromEntries(
+			Object.entries(player).map(([k, v]) => [k, v.toJS()])
+		)
+	).toArray(),
 	Supply: state.supply.map(cards => cards.length).toJS(),
 	Trash: state.trash.size + ' cards'
 }, {colors: true}) + '\n'

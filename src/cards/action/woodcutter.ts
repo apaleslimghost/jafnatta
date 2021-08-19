@@ -1,5 +1,5 @@
 import { addBuyAction, addCoinAction } from "../../actions";
-import { ThunkDispatch } from "../../types";
+import { State, ThunkDispatch } from "../../types";
 import { ActionCard, Card, type } from "../types";
 
 @type(ActionCard)
@@ -11,8 +11,8 @@ export default class Woodcutter extends Card {
 	`;
 	static cost = () => 3;
 
-	onPlay(dispatch: ThunkDispatch) {
-		dispatch(addBuyAction(1));
-		dispatch(addCoinAction(2));
+	onPlay(dispatch: ThunkDispatch, state: State, player: string) {
+		dispatch(addBuyAction(1, player));
+		dispatch(addCoinAction(2, player));
 	}
 }

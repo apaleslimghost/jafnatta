@@ -9,13 +9,14 @@ const allowedCards: { [phase in Phase]: Array<typeof Card> } = {
 	cleanup: [],
 };
 
-const makeTheCardDoAThing = (card: ActionCard): ThunkResult<void | Promise<void>> => (
+const makeTheCardDoAThing = (card: ActionCard, player: string): ThunkResult<void | Promise<void>> => (
 	dispatch: ThunkDispatch,
 	getState: GetState
-) => card.onPlay(dispatch, getState);
+) => card.onPlay(dispatch, getState(), player);
 
 const playCardAction = (
 	card: Card & PlayableCard,
+	player: string,
 	{ fromCard = false } = {}
 ): ThunkResult<Promise<PlayCardAction>> => async (
 	dispatch: ThunkDispatch,
@@ -28,11 +29,11 @@ const playCardAction = (
 
 	if (cardAllowed) {
 		if(!fromCard && card.is(ActionCard)) {
-			dispatch(addActionAction(-1))
+			dispatch(addActionAction(-1, player))
 		}
 
-		await dispatch(moveCardAction({ card, from: 'hand', to: 'inPlay' }))
-		await dispatch(makeTheCardDoAThing(card));
+		await dispatch(moveCardAction({ card, from: 'hand', to: 'inPlay', player }))
+		await dispatch(makeTheCardDoAThing(card, player));
 	}
 
 	return dispatch({ type: 'play-card', card });

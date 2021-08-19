@@ -6,9 +6,10 @@ import { waitForActionAction } from "./wait-for-action";
 export const askForCardAction = <C extends typeof Card>(
 	from: keyof PlayerState,
 	cardType: C,
+	player: string,
 	amount: number = 1
 ): ThunkResult<Promise<Card & InstanceType<C>[]>> => async (dispatch, getState) => {
 	const promise = ExternalPromise.create<Card & InstanceType<C>[]>()
-	dispatch({ type: 'ask-for-card', from, cardType, promise, amount });
+	dispatch({ type: 'ask-for-card', from, cardType, promise, amount, player });
 	return promise
 };

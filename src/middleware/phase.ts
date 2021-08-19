@@ -7,6 +7,12 @@ import { Colony, Province } from "../cards/victory";
 import { Action, Middleware } from "../types";
 
 const phase: Middleware = store => next => async (action: Action) => {
+	const getState = () => {
+		const state = store.getState()
+		const player = state.players.get(state.turn.player)
+		return { ...state, player }
+	}
+
 	switch(action.type) {
 		case 'phase':
 			// run the action so reducer changes phase
@@ -14,37 +20,38 @@ const phase: Middleware = store => next => async (action: Action) => {
 
 			switch(action.phase) {
 				case 'action': {
-					do {
-						const [card] = await store.dispatch(askForCardAction('hand', ActionCard))
+					// TODO i don't like these for loops
+					for(let { turn } = getState(); turn.actions > 0; { turn } = getState()) {
+						const [card] = await store.dispatch(askForCardAction('hand', ActionCard, turn.player))
 
 						if(card) {
-							await store.dispatch(playCardAction(card))
+							await store.dispatch(playCardAction(card, turn.player))
 						} else {
 							break
 						}
-					} while(store.getState().turn.actions > 0)
+					}
 
 					store.dispatch(phaseAction('buy'))
 					break;
 				}
 				case 'buy': {
 					while(true) {
-						const [card] = await store.dispatch(askForCardAction('hand', TreasureCard))
+						const { turn } = getState()
+						const [card] = await store.dispatch(askForCardAction('hand', TreasureCard, turn.player))
 
 						if(card) {
-							await store.dispatch(playCardAction(card))
+							await store.dispatch(playCardAction(card, turn.player))
 						} else {
 							break
 						}
 					}
 
-					while(store.getState().turn.buys > 0) {
-						const cardType = await store.dispatch(askForSupplyCardAction(store.getState().turn.coins))
-						const { turn } = store.getState()
+					for(let { turn, supply } = getState(); turn.buys > 0; { turn, supply } = getState()) {
+						const cardType = await store.dispatch(askForSupplyCardAction(turn.coins))
 
-						if(store.getState().supply.has(cardType)) {
+						if(supply.has(cardType)) {
 							if(cardType.cost(turn) <= turn.coins) {
-								store.dispatch(buyAction(cardType))
+								store.dispatch(buyAction(cardType, turn.player))
 							}
 						} else {
 							break
@@ -56,22 +63,25 @@ const phase: Middleware = store => next => async (action: Action) => {
 					break;
 				}
 				case 'cleanup': {
-					while(store.getState().player.inPlay.size) {
+					for(let { player, turn } = getState(); player.inPlay.size; { player } = getState()) {
 						store.dispatch(moveCardAction({
-							card: store.getState().player.inPlay.first(),
+							card: player.inPlay.first(),
 							from: 'inPlay',
-							to: 'discard'
+							to: 'discard',
+							player: turn.player
 						}))
 					}
 
-					while(store.getState().player.hand.size) {
+					for(let { player, turn } = getState(); player.hand.size; { player } = getState()) {
 						store.dispatch(moveCardAction({
-							card: store.getState().player.hand.first(),
+							card: player.hand.first(),
 							from: 'hand',
-							to: 'discard'
+							to: 'discard',
+							player: turn.player
 						}))
 					}
-					store.dispatch(drawAction(5))
+
+					store.dispatch(drawAction(5, getState().turn.player))
 
 					const { supply } = store.getState()
 					if(
@@ -83,6 +93,7 @@ const phase: Middleware = store => next => async (action: Action) => {
 						throw new Error('game ended lol')
 					}
 
+					// TODO move to next player
 					store.dispatch(phaseAction('action'))
 					break;
 				}

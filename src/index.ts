@@ -1,6 +1,3 @@
-
-//TODO players
-
 import { applyMiddleware, combineReducers, createStore, Reducer, Store } from "redux";
 import { createDynamicMiddlewares } from "redux-dynamic-middlewares";
 import thunk from "redux-thunk";
@@ -12,7 +9,7 @@ import gainCardReducer from "./reducers/gain-card";
 import { State, Action, Middleware, ThunkDispatch } from "./types";
 import turn from "./reducers/turn";
 import supply from "./reducers/supply";
-import player from "./reducers/player";
+import players from "./reducers/players";
 import drawCards from "./middleware/draw-cards";
 import { defaultState } from "./state";
 import trashReducer from "./reducers/trash";
@@ -25,10 +22,10 @@ const logActions: Middleware = store => next => action => {
 	next(action);
 };
 
-const sliceReducers: Reducer = (state = defaultState, action) => ({
+const sliceReducers: Reducer = (state: State = defaultState, action: Action): State => ({
 	turn: turn(state.turn, action),
 	supply: supply(state, action),
-	player: player(state.player, action),
+	players: players(state.players, action),
 	trash: state.trash
 })
 
@@ -43,7 +40,7 @@ const reducer = compose(
 	trashReducer
 )
 
-const store: Store<State, Action> & {dispatch: ThunkDispatch} = createStore(
+const store = createStore(
 	reducer,
 	applyMiddleware(
 		thunk,
@@ -54,7 +51,7 @@ const store: Store<State, Action> & {dispatch: ThunkDispatch} = createStore(
 		drawCards,
 		phase
 	)
-);
+)
 
 export const addInterface = (middleware: Middleware) => dynamicMiddlewaresInstance.addMiddleware(middleware)
 

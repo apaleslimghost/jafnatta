@@ -8,7 +8,12 @@ const buyCard: Middleware = store => next => (action: Action) => {
 			if (phase === 'buy' && buys >= 1) {
 				// let the phase reducer handle turn state changes before gaining
 				const val = next(action);
-				store.dispatch(gainAction({ card: action.card }));
+
+				store.dispatch(gainAction({
+					card: action.card,
+					player: action.player
+				}));
+
 				return val;
 			}
 			break;
