@@ -7,6 +7,8 @@ const cleanup = (state: TurnState, action: Action) => {
 			if (action.phase === 'action') {
 				return { ...state, phase: action.phase };
 			} else return state;
+		default:
+			return state
 	}
 }
 

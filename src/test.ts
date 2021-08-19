@@ -2,8 +2,8 @@ import j, { addInterface } from "."
 import { Card } from "./cards/types"
 import { Action } from "./types"
 import prompt from 'prompts'
-import { drawAction, initPlayerAction, initSupplyAction, phaseAction } from "./actions"
-import { inspectState } from "./inspect"
+import { drawAction, initPlayerAction, initPlayersAction, initSupplyAction, phaseAction } from "./actions"
+import { inspectAction, inspectState } from "./inspect"
 import { Copper, Gold, Silver } from "./cards/treasure"
 import { Duchy, Estate, Province } from "./cards/victory"
 import Woodcutter from "./cards/action/woodcutter"
@@ -22,15 +22,22 @@ const onState = ({aborted}: {aborted: boolean}) => {
 	}
 }
 
+addInterface(store => next => async action => {
+	console.log(inspectAction(action))
+	await next(action)
+	console.log(inspectState(store.getState()))
+	console.log('═'.repeat(process.stdout.columns))
+})
+
 addInterface(store => next => async (action: Action) => {
 	const state = store.getState()
 
 	switch(action.type) {
 		case 'ask-for-card': {
-			const availableCards = state.player[action.from].filter(card => card.is(action.cardType))
+			const player = state.players.get(action.player)
+			const availableCards = player[action.from].filter(card => card.is(action.cardType))
 
 			await tick()
-
 
 			if(availableCards.size > 0) {
 				if(action.amount === 1) {
@@ -113,12 +120,6 @@ addInterface(store => next => async (action: Action) => {
 
 async function main() {
 
-
-	j.subscribe(() => console.log(
-		inspectState(j.getState()) + '\n'
-		+ '═'.repeat(process.stdout.columns) + '\n'
-	));
-
 	j.dispatch(initSupplyAction([
 		Copper,
 		Estate,
@@ -136,9 +137,7 @@ async function main() {
 		Duchy
 	]))
 
-	j.dispatch(initPlayerAction())
-	j.dispatch(drawAction(5))
-	j.dispatch(phaseAction('action'))
+	j.dispatch(initPlayersAction(2))
 }
 
 main()

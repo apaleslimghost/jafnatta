@@ -1,5 +1,5 @@
 import shuffle from "array-shuffle";
-import { OrderedSet } from "immutable";
+import { Map, OrderedSet } from "immutable";
 import { defaultPlayerState } from "../state";
 import { Action, PlayerState } from "../types";
 

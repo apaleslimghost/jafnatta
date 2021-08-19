@@ -1,4 +1,4 @@
-import { ThunkDispatch } from "../../types";
+import { State, ThunkDispatch } from "../../types";
 import { drawAction } from '../../actions';
 import { ActionCard, Card, type } from "../types";
 
@@ -10,7 +10,7 @@ export default class Smithy extends Card {
 	`;
 	static cost = () => 4;
 
-	async onPlay(dispatch: ThunkDispatch) {
-		dispatch(drawAction(3))
+	async onPlay(dispatch: ThunkDispatch, state: State, player: string) {
+		dispatch(drawAction(3, player))
 	}
 }

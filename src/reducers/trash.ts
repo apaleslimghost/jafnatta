@@ -5,10 +5,10 @@ export default (state: State, action: Action) => {
 		return {
 			...state,
 			trash: state.trash.add(action.card),
-			player: {
-				...state.player,
-				[action.from]: state.player[action.from].remove(action.card)
-			}
+			players: state.players.update(action.player, player => ({
+				...player,
+				[action.from]: player[action.from].remove(action.card)
+			}))
 		}
 	}
 

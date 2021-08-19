@@ -49,7 +49,7 @@ export const type = <C extends typeof Card>(type: C) => <T extends typeof Card>(
 }
 
 export abstract class PlayableCard extends Card {
-	abstract onPlay(_: Dispatch, __: GetState): void | Promise<void>
+	abstract onPlay(_: Dispatch, __: State, ___: string): void | Promise<void>
 }
 
 export abstract class ActionCard extends PlayableCard {

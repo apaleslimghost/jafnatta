@@ -1,9 +1,9 @@
 
 import {TurnState, Action} from '../../types'
-import {defaultTurnState} from '../../state'
+import { defaultTurnState } from '../../state'
 
 export default function action(
-	state: TurnState = defaultTurnState,
+	state: TurnState,
 	action: Action
 ): TurnState {
 	switch (action.type) {

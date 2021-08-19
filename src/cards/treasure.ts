@@ -5,8 +5,8 @@ import { addCoinAction } from '../actions';
 
 @type(TreasureCard)
 class BasicTreasureCard extends Card {
-	onPlay(dispatch: Dispatch, getState: GetState) {
-		dispatch(addCoinAction(this.getCoinValue(getState())));
+	onPlay(dispatch: Dispatch, state: State, player: string) {
+		dispatch(addCoinAction(this.getCoinValue(state), player));
 	}
 
 	getCoinValue(state: State) {
