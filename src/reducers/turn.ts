@@ -7,6 +7,12 @@ function commonTurnReduce(
 	action: Action
 ): TurnState {
 	switch (action.type) {
+		case 'turn':
+			return {
+				// reset turn state for new player
+				...defaultTurnState,
+				player: action.player
+			}
 		case 'add-coin':
 			return { ...state, coins: state.coins + action.amount };
 		default:
@@ -17,7 +23,18 @@ function commonTurnReduce(
 const phaseReduce = (
 	state: TurnState = defaultTurnState,
 	action: Action
-): TurnState => phases[state.phase](state, action);
+): TurnState => {
+	if(state.phase) {
+		return phases[state.phase](state, action)
+	} else if('phase' in action) {
+		return {
+			...state,
+			phase: action.phase
+		}
+	} else {
+		return state
+	}
+}
 
 const turn = (state: TurnState, action: Action) => commonTurnReduce(phaseReduce(state, action), action);
 

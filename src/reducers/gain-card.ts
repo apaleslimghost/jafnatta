@@ -1,11 +1,11 @@
 import { defaultState } from "../state";
 import { Action, State } from "../types";
 
-export default function gainCardReducer(state: State = defaultState, action: Action): State {
+export default function gainCardReducer(state: State, action: Action): State {
 	switch (action.type) {
 		case 'gain-card':
 			const [card, ...remaining] = state.supply.get(action.card);
-			return {
+			const newState = {
 				...state,
 				players: state.players.update(action.player, player => ({
 					...player,
@@ -13,6 +13,8 @@ export default function gainCardReducer(state: State = defaultState, action: Act
 				})),
 				supply: state.supply.set(action.card, remaining),
 			};
+
+			return newState
 		default:
 			return state;
 	}

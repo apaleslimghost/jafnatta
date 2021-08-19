@@ -3,7 +3,7 @@ import { Card } from "./cards/types"
 import { Action } from "./types"
 import prompt from 'prompts'
 import { drawAction, initPlayerAction, initPlayersAction, initSupplyAction, phaseAction } from "./actions"
-import { inspectState } from "./inspect"
+import { inspectAction, inspectState } from "./inspect"
 import { Copper, Gold, Silver } from "./cards/treasure"
 import { Duchy, Estate, Province } from "./cards/victory"
 import Woodcutter from "./cards/action/woodcutter"
@@ -21,6 +21,13 @@ const onState = ({aborted}: {aborted: boolean}) => {
 		process.exit(2)
 	}
 }
+
+addInterface(store => next => async action => {
+	console.log(inspectAction(action))
+	await next(action)
+	console.log(inspectState(store.getState()))
+	console.log('═'.repeat(process.stdout.columns))
+})
 
 addInterface(store => next => async (action: Action) => {
 	const state = store.getState()
@@ -112,10 +119,6 @@ addInterface(store => next => async (action: Action) => {
 })
 
 async function main() {
-	j.subscribe(() => console.log(
-		inspectState(j.getState()) + '\n'
-		+ '═'.repeat(process.stdout.columns) + '\n'
-	));
 
 	j.dispatch(initSupplyAction([
 		Copper,
@@ -135,8 +138,6 @@ async function main() {
 	]))
 
 	j.dispatch(initPlayersAction(2))
-	// j.dispatch(drawAction(5))
-	// j.dispatch(phaseAction('action'))
 }
 
 main()

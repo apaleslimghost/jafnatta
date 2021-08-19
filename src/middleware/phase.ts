@@ -1,4 +1,4 @@
-import { buyAction, drawAction, moveCardAction, phaseAction } from "../actions";
+import { buyAction, drawAction, moveCardAction, phaseAction, turnAction } from "../actions";
 import { askForCardAction } from "../actions/ask-for-card";
 import { askForSupplyCardAction } from "../actions/ask-for-supply-card";
 import playCardAction from "../actions/play-card";
@@ -93,8 +93,11 @@ const phase: Middleware = store => next => async (action: Action) => {
 						throw new Error('game ended lol')
 					}
 
-					// TODO move to next player
-					store.dispatch(phaseAction('action'))
+					const playerIds = getState().players.keySeq()
+					const playerIndex = playerIds.findIndex(player => player === getState().turn.player)
+					const nextPlayer = playerIds.get(playerIndex + 1, playerIds.first())
+					console.log('NEXT PLAYER', getState().turn.player, nextPlayer)
+					store.dispatch(turnAction(nextPlayer))
 					break;
 				}
 			}

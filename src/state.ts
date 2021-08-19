@@ -6,7 +6,7 @@ export const defaultTurnState: TurnState = {
 	actions: 1,
 	buys: 1,
 	coins: 0,
-	phase: 'action',
+	phase: null,
 	player: null
 };
 

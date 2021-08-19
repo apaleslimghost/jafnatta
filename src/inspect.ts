@@ -12,9 +12,9 @@ export const inspectState = (state: State): string => 'State ' + util.inspect({
 		Object.fromEntries(
 			Object.entries(player).map(([k, v]) => [k, v.toJS()])
 		)
-	).toArray(),
+	).toJS(),
 	Supply: state.supply.map(cards => cards.length).toJS(),
 	Trash: state.trash.size + ' cards'
-}, {colors: true}) + '\n'
+}, {colors: true, depth: null}) + '\n'
 
 export const inspectAction = (action: Action): string => 'Action ' + util.inspect(action, {colors: true}) + '\n'

@@ -13,6 +13,7 @@ export type AddActionAction = {type: 'add-action', amount: number, player: strin
 export type AddBuyAction = {type: 'add-buy', amount: number, player: string };
 export type AddCoinAction = {type: 'add-coin', amount: number, player: string };
 export type PhaseAction = {type: 'phase', phase: Phase};
+export type TurnAction = {type: 'turn', player: ID}
 export type GainAction = {type: 'gain-card', card: typeof Card, player: ID, where?: keyof PlayerState };
 export type BuyAction = {type: 'buy-card', card: typeof Card, player: string};
 export type InitPlayerAction = {type: 'init-player', player: ID };
@@ -33,6 +34,7 @@ export type Action =
 	| AddBuyAction
 	| AddCoinAction
 	| PhaseAction
+	| TurnAction
 	| GainAction
 	| BuyAction
 	| InitPlayerAction

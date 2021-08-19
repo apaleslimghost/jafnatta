@@ -4,14 +4,14 @@ import { Action, Middleware } from "../types";
 const drawCards: Middleware = store => next => (action: Action) => {
 	switch (action.type) {
 		case 'draw': {
-			const { players } = store.getState()
-			const player = players.get(action.player)
+			const player = store.getState().players.get(action.player)
 
 			if(action.amount > player.deck.size) {
 				store.dispatch(shuffleAction(action.player))
 			}
 
 			for(let i = 0; i < action.amount; i++) {
+				const player = store.getState().players.get(action.player)
 				const card = player.deck.first()
 
 				if(card) {
