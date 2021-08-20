@@ -34,18 +34,22 @@ export abstract class Card extends Named {
 	static numberInSupply(_: State): number { return 10 }
 	static types: (typeof Card)[]
 
-	is<T extends typeof Card>(type: T): this is T {
-		if(type === Card) {
-			return true
-		}
-
-		return (this.constructor as typeof Card).types.includes(type)
+	is<T extends typeof Card>(type: T): this is InstanceType<T> {
+		return isType(type, this.constructor as typeof Card)
 	}
 }
 
 export const type = <C extends typeof Card>(type: C) => <T extends typeof Card>(klass: C & T) => {
 	klass.types ||= []
-	klass.types.push(type)
+	klass.types.unshift(type)
+}
+
+export const isType = <T extends typeof Card>(type: T, card: typeof Card): card is T => {
+	if(type === Card) {
+		return true
+	}
+
+	return card.types.includes(type)
 }
 
 export abstract class PlayableCard extends Card {

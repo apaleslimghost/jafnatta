@@ -11,6 +11,7 @@
 		"noImplicitAny": true,
 		"outDir": "lib",
 		"esModuleInterop": true,
-		"experimentalDecorators": true
+		"experimentalDecorators": true,
+		"jsx": "react"
 	}
 }
