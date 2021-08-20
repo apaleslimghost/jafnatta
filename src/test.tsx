@@ -12,7 +12,7 @@ import Smithy from "./cards/action/smithy"
 import Workshop from "./cards/action/workshop"
 import Nobles from "./cards/nobles"
 
-import React, { Fragment, FunctionComponent } from 'react'
+import React, { Children, Fragment, FunctionComponent } from 'react'
 import { Box, Newline, render, Spacer, Text } from 'ink'
 import Select from 'ink-select-input'
 import MultiSelect from 'ink-select-input'
@@ -54,28 +54,26 @@ const typeColors = {
 
 type CardConstructor = { new(): Card }
 
-const ShowCard: FunctionComponent<{Card: typeof Card}> = ({ Card, children }) => {
+const ShowCard: FunctionComponent<{Card: typeof Card}> = ({ Card }) => {
 	const turn = useAppSelector(state => state.turn)
 	const state = useAppSelector(state => state)
 	const card = new (Card as unknown as CardConstructor)()
 
-	return <Box borderStyle='round' width={20} minHeight={10} flexDirection='column' alignItems='stretch' paddingX={1}>
-		<Box justifyContent='space-between'>
+	return <Box borderStyle='round' width={20} height={10} flexDirection='column' paddingX={1}>
+		<Box justifyContent='space-between' marginBottom={1}>
 			<Text bold color='white'>{Card.toString()}</Text>
 			<Text>${Card.cost(turn)}</Text>
 		</Box>
 
 		<Text>{Card.text}</Text>
 
-		{children}
-
-		<Spacer />
-
 		{card.is(VictoryCard) && <Text>
 			🛡 {card.getVictoryValue(state)}
 		</Text>}
 
-		<Box>
+		<Spacer />
+
+		<Box marginTop={1}>
 			{Card.types.map((type, i) => {
 				const typeName = type.toString() as 'Action' | 'Victory' | 'Treasure'
 
@@ -90,9 +88,31 @@ const ShowCard: FunctionComponent<{Card: typeof Card}> = ({ Card, children }) =>
 	</Box>
 }
 
+const CardGrid: FunctionComponent = ({ children }) => {
+	const kids = Children.toArray(children)
+	const columns = Math.floor(process.stdout.columns / 20)
+	const rows = Math.floor(kids.length / columns)
+
+	return <Box flexDirection='column'>
+		{Array.from({ length: rows }, (_, row) => <Box key={row}>
+			{kids.slice(columns * row, columns * row + columns)}
+		</Box>)}
+	</Box>
+}
+
+const ShowSupply: FunctionComponent = () => {
+	const supply = useAppSelector(state => state.supply)
+
+	return <CardGrid>
+		{supply.map((pile, card) => (
+			<ShowCard key={card.toString()} Card={card} />
+		)).toArray()}
+	</CardGrid>
+}
+
 render(
 	<Provider store={j}>
-		<ShowCard Card={Platinum} />
+		<ShowSupply />
 	</Provider>
 )
 
@@ -183,25 +203,21 @@ render(
 // 	}
 // })
 
-// async function main() {
-// 	j.dispatch(initSupplyAction([
-// 		Copper,
-// 		Estate,
-// 		Woodcutter,
-// 		ThroneRoom,
-// 		Village,
-// 		Smithy,
-// 		Workshop,
-// 		Chapel,
-// 		Cellar,
-// 		Nobles,
-// 		Gold,
-// 		Silver,
-// 		Province,
-// 		Duchy
-// 	]))
+j.dispatch(initSupplyAction([
+	Copper,
+	Estate,
+	Woodcutter,
+	ThroneRoom,
+	Village,
+	Smithy,
+	Workshop,
+	Chapel,
+	Cellar,
+	Nobles,
+	Gold,
+	Silver,
+	Province,
+	Duchy
+]))
 
-// 	j.dispatch(initPlayersAction(2))
-// }
-
-// main()
+j.dispatch(initPlayersAction(2))

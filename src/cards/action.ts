@@ -8,6 +8,8 @@ import { ThunkAction } from 'redux-thunk';
 @type(ActionCard)
 export class Village extends Card {
 	static cost = () => 3
+	static text = `+1 Card
++2 Actions`
 
 	onPlay(dispatch: ThunkDispatch, state: State, player: string) {
 		dispatch(addActionAction(2, player))
@@ -18,6 +20,7 @@ export class Village extends Card {
 @type(ActionCard)
 export class Chapel extends Card {
 	static cost = () => 2
+	static text = `Trash up to 4 cards from your hand.`
 
 	async onPlay(dispatch: ThunkDispatch, state: State, player: string) {
 		const cards = await dispatch(askForCardAction(
@@ -36,6 +39,8 @@ export class Chapel extends Card {
 @type(ActionCard)
 export class Cellar extends Card {
 	static cost = () => 2
+	static text = `+1 Action
+Discard any number of cards, then draw that many.`
 
 	async onPlay(dispatch: ThunkDispatch, state: State, player: string) {
 		const cards = await dispatch(askForCardAction(

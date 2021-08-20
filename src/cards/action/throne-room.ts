@@ -7,9 +7,7 @@ import { ActionCard, Card, type } from "../types";
 @type(ActionCard)
 export default class ThroneRoom extends Card {
 	static displayName = 'Throne Room';
-	static text = `
-		You may play an Action card from your hand twice.
-	`;
+	static text = `You may play an Action card from your hand twice.`;
 	static cost = () => 4;
 
 	async onPlay(dispatch: ThunkDispatch, state: State, player: string) {

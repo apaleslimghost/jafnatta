@@ -16,7 +16,6 @@ class BasicTreasureCard extends Card {
 			player
 		));
 	}
-
 }
 
 export class Platinum extends BasicTreasureCard {
