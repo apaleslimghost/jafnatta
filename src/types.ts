@@ -17,7 +17,8 @@ export type TurnAction = {type: 'turn', player: ID}
 export type GainAction = {type: 'gain-card', card: typeof Card, player: ID, where?: keyof PlayerState };
 export type BuyAction = {type: 'buy-card', card: typeof Card, player: string};
 export type InitPlayerAction = {type: 'init-player', player: ID };
-export type InitPlayersAction = {type: 'init-players', number: number};
+export type CreatePlayersAction = {type: 'create-players', number: number};
+export type InitPlayersAction = {type: 'init-players'};
 export type InitSupplyAction = {type: 'init-supply', cards: Array<typeof Card>};
 export type WaitForActionAction = {type: 'wait-for-action', action: string, promise: ExternalPromise<Action>};
 export type AskForCardAction = {type: 'ask-for-card', from: keyof PlayerState, cardType: typeof Card, promise: ExternalPromise<Card[]>, amount: number, player: string };
@@ -38,6 +39,7 @@ export type Action =
 	| GainAction
 	| BuyAction
 	| InitPlayerAction
+	| CreatePlayersAction
 	| InitPlayersAction
 	| InitSupplyAction
 	| WaitForActionAction

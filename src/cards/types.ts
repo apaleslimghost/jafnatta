@@ -64,7 +64,28 @@ export abstract class TreasureCard extends PlayableCard {
 	static displayName = 'Treasure'
 }
 
-export abstract class VictoryCard extends Card {
-	static displayName = 'Victory'
+export abstract class VictoryValuedCard extends Card {
 	abstract getVictoryValue(_: State): number
+}
+
+export abstract class VictoryCard extends VictoryValuedCard {
+	static displayName = 'Victory'
+}
+
+export abstract class AttackCard extends Card {
+	static displayName = 'Attack'
+}
+
+export abstract class CurseCard extends VictoryValuedCard {
+	static displayName = 'Curse'
+}
+
+@type(CurseCard)
+export class Curse extends Card {
+	static cost = () => 0
+	static numberInSupply = (state: State) => (state.players.size - 1) * 10
+
+	getVictoryValue() {
+		return -1
+	}
 }

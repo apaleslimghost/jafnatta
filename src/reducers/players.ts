@@ -8,7 +8,7 @@ export default function players(
 	players: OrderedMap<ID, PlayerState>,
 	action: Action
 ): OrderedMap<ID, PlayerState> {
-	if(action.type === 'init-players') {
+	if(action.type === 'create-players') {
 		return OrderedMap(Array.from({length: action.number}, () => [
 			UUID.v4(),
 			defaultPlayerState

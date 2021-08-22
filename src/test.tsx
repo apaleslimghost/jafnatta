@@ -1,13 +1,13 @@
 import j, { addInterface, addReducer } from "."
-import { Card, isType, TreasureCard, VictoryCard } from "./cards/types"
+import { Card, Curse, isType, TreasureCard, VictoryCard } from "./cards/types"
 import { Action, AskForCardAction, AskForSupplyCardAction, ChooseOneAction, State } from "./types"
-import { drawAction, initPlayerAction, initPlayersAction, initSupplyAction, phaseAction } from "./actions"
+import { createPlayersAction, drawAction, initPlayerAction, initPlayersAction, initSupplyAction, phaseAction } from "./actions"
 import { inspectAction, inspectState } from "./inspect"
 import { Copper, Gold, Platinum, Silver } from "./cards/treasure"
 import { Duchy, Estate, Province } from "./cards/victory"
 import Woodcutter from "./cards/action/woodcutter"
 import ThroneRoom from "./cards/action/throne-room"
-import { Chapel, Cellar, Village } from "./cards/action"
+import { Chapel, Cellar, Village, Witch } from "./cards/action"
 import Smithy from "./cards/action/smithy"
 import Workshop from "./cards/action/workshop"
 import Nobles from "./cards/nobles"
@@ -223,6 +223,9 @@ const App: FunctionComponent = () => {
 
 render(<Provider store={j}><App /></Provider>)
 
+
+j.dispatch(createPlayersAction(2))
+
 j.dispatch(initSupplyAction([
 	Copper,
 	Estate,
@@ -237,7 +240,9 @@ j.dispatch(initSupplyAction([
 	Gold,
 	Silver,
 	Province,
-	Duchy
+	Duchy,
+	Curse,
+	Witch
 ]))
 
-j.dispatch(initPlayersAction(2))
+j.dispatch(initPlayersAction())
