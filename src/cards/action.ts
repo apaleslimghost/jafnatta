@@ -50,6 +50,8 @@ Discard any number of cards, then draw that many.`
 			Infinity
 		))
 
+		dispatch(addActionAction(1, player))
+
 		for(const card of cards) {
 			dispatch(moveCardAction({ card, from: 'hand', to: 'discard', player }))
 		}

@@ -29,11 +29,13 @@ const compose = (...reducers: Reducer[]): Reducer => reducers.reduce(
 	(state = defaultState, action) => state
 )
 
-const reducer = compose(
+const baseReducers = [
 	sliceReducers,
 	gainCardReducer,
 	trashReducer
-)
+]
+
+const reducer = compose(...baseReducers)
 
 const store = createStore(
 	reducer,
@@ -50,5 +52,14 @@ const store = createStore(
 )
 
 export const addInterface = (middleware: Middleware) => dynamicMiddlewaresInstance.addMiddleware(middleware)
+
+const extraReducers: Reducer[] = []
+export const addReducer = (reducer: Reducer) => {
+	extraReducers.push(reducer)
+	store.replaceReducer(compose(
+		...baseReducers,
+		...extraReducers
+	))
+}
 
 export default store

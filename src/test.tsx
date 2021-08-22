@@ -1,6 +1,6 @@
-import j, { addInterface } from "."
+import j, { addInterface, addReducer } from "."
 import { Card, isType, TreasureCard, VictoryCard } from "./cards/types"
-import { Action, State } from "./types"
+import { Action, AskForCardAction, AskForSupplyCardAction, ChooseOneAction, State } from "./types"
 import { drawAction, initPlayerAction, initPlayersAction, initSupplyAction, phaseAction } from "./actions"
 import { inspectAction, inspectState } from "./inspect"
 import { Copper, Gold, Platinum, Silver } from "./cards/treasure"
@@ -12,37 +12,42 @@ import Smithy from "./cards/action/smithy"
 import Workshop from "./cards/action/workshop"
 import Nobles from "./cards/nobles"
 
-import React, { Children, Fragment, FunctionComponent } from 'react'
-import { Box, Newline, render, Spacer, Text } from 'ink'
+import React, { Children, Fragment, FunctionComponent, useEffect, useState } from 'react'
+import { Box, Newline, render, Spacer, Static, Text, useInput, useStdout } from 'ink'
 import Select from 'ink-select-input'
-import MultiSelect from 'ink-select-input'
-import {Provider, useSelector, TypedUseSelectorHook} from 'react-redux/lib/alternate-renderers'
+import MultiSelect from 'ink-multi-select'
+import {Provider, useSelector, TypedUseSelectorHook, useDispatch} from 'react-redux/lib/alternate-renderers'
+import { Store } from "redux"
+import { askForSupplyCardAction } from "./actions/ask-for-supply-card"
+import { askForCardAction } from "./actions/ask-for-card"
 
 type CardPromptProps = {
 	cards: Card[],
-	onSelect: (card: Card) => void,
-	amount?: number
+	onSelect: (cards: Card[]) => void,
+	amount: number
 }
 
 const useAppSelector: TypedUseSelectorHook<State> = useSelector
 
-const CardPrompt: FunctionComponent<CardPromptProps> = ({ cards, onSelect, amount = 1 }) => {
-	const items = cards.map(card => ({
+const CardPrompt: FunctionComponent<CardPromptProps> = ({ cards, onSelect, amount }) => {
+	const items = cards.map((card, i) => ({
 		label: card.toString(),
-		value: card
+		value: card,
+		key: String(i)
 	}))
 
 	if(amount > 1) {
 		return <MultiSelect
-			items={items}
-			onSelect={({ value }) => onSelect(value)}
+			// types for library are wrong, cast items to any
+			items={items as any}
+			onSubmit={items => onSelect(items.map(item => item.value as any))}
 			limit={amount}
 		/>
 	}
 
 	return  <Select
 		items={items}
-		onSelect={({ value }) => onSelect(value)}
+		onSelect={({ value }) => onSelect([ value ])}
 	/>
 }
 
@@ -54,32 +59,34 @@ const typeColors = {
 
 type CardConstructor = { new(): Card }
 
-const ShowCard: FunctionComponent<{Card: typeof Card}> = ({ Card }) => {
+const ShowCard: FunctionComponent<{Card: typeof Card, selected?: boolean, compact?: boolean}> = ({ Card, selected, compact }) => {
 	const turn = useAppSelector(state => state.turn)
 	const state = useAppSelector(state => state)
 	const card = new (Card as unknown as CardConstructor)()
 
-	return <Box borderStyle='round' width={20} height={10} flexDirection='column' paddingX={1}>
+	return <Box borderStyle={selected ? 'bold': 'round'} borderColor={selected ? 'whiteBright' : 'gray'} width={compact ? 10 : 20} height={compact ? 6 : 10} flexDirection='column' paddingX={1}>
 		<Box justifyContent='space-between' marginBottom={1}>
 			<Text bold color='white'>{Card.toString()}</Text>
-			<Text>${Card.cost(turn)}</Text>
+			{!compact && <Text>${Card.cost(turn)}</Text>}
 		</Box>
 
-		<Text>{Card.text}</Text>
+		{!compact && <>
+			<Text>{Card.text}</Text>
 
-		{card.is(VictoryCard) && <Text>
-			🛡 {card.getVictoryValue(state)}
-		</Text>}
+			{card.is(VictoryCard) && <Text>
+				🛡 {card.getVictoryValue(state)}
+			</Text>}
+		</>}
 
 		<Spacer />
 
-		<Box marginTop={1}>
+		<Box marginTop={1} justifyContent='space-around'>
 			{Card.types.map((type, i) => {
 				const typeName = type.toString() as 'Action' | 'Victory' | 'Treasure'
 
 				return <Fragment key={typeName}>
 					<Text color={typeColors[typeName]}>
-						{typeName}
+						{compact ? typeName[0] : typeName}
 					</Text>
 					{i < Card.types.length - 1 && <Text dimColor> • </Text>}
 				</Fragment>
@@ -88,120 +95,133 @@ const ShowCard: FunctionComponent<{Card: typeof Card}> = ({ Card }) => {
 	</Box>
 }
 
-const CardGrid: FunctionComponent = ({ children }) => {
-	const kids = Children.toArray(children)
-	const columns = Math.floor(process.stdout.columns / 20)
-	const rows = Math.floor(kids.length / columns)
+const CardGrid: FunctionComponent<{cards: (typeof Card)[], onSelect?: (card: typeof Card) => void, compact?: boolean}> = ({ cards, onSelect, compact }) => {
+	const { stdout } = useStdout()
+	const columns = Math.floor(stdout.columns / (compact ? 10 : 20))
+	const rows = Math.ceil(cards.length / columns)
+
+	const [selectedRow, setRow] = useState(0)
+	const [selectedColumn, setColumn] = useState(0)
+
+	useInput((input, key) => {
+		if(key.leftArrow) {
+			setColumn(c => ((c - 1) + columns) % columns)
+		}
+		if(key.rightArrow) {
+			setColumn(c => ((c + 1) + columns) % columns)
+		}
+		if(key.upArrow) {
+			setRow(r => ((r - 1) + rows) % rows)
+		}
+		if(key.downArrow) {
+			setRow(r => ((r + 1) + rows) % rows)
+		}
+		if(key.return && onSelect) {
+			onSelect(cards[selectedRow * columns + selectedColumn])
+		}
+	})
 
 	return <Box flexDirection='column'>
 		{Array.from({ length: rows }, (_, row) => <Box key={row}>
-			{kids.slice(columns * row, columns * row + columns)}
+			{cards.slice(columns * row, columns * row + columns).map((card, column) => (
+				<ShowCard key={column} Card={card} selected={onSelect && column === selectedColumn && row === selectedRow} compact={compact} />
+			))}
 		</Box>)}
 	</Box>
 }
 
-const ShowSupply: FunctionComponent = () => {
-	const supply = useAppSelector(state => state.supply)
+const ShowSupply: FunctionComponent<AskForSupplyCardAction> = ({ promise, maxValue }) => {
+	const turn = useAppSelector(state => state.turn)
+	const supply = useAppSelector(state => state.supply.filter(
+		(pile, card) => card.cost(turn) <= maxValue
+	))
 
-	return <CardGrid>
-		{supply.map((pile, card) => (
-			<ShowCard key={card.toString()} Card={card} />
-		)).toArray()}
-	</CardGrid>
+	return <CardGrid cards={supply.keySeq().toArray()} onSelect={card => promise.resolve(card)} />
 }
 
-render(
-	<Provider store={j}>
-		<ShowSupply />
-	</Provider>
-)
+const ChooseCard: FunctionComponent<AskForCardAction> = ({ cardType, from, player: playerId, promise, amount }) => {
+	const player = useAppSelector(state => state.players.get(playerId))
+	const availableCards = player[from].filter(card => card.is(cardType))
 
-// addInterface(store => next => async (action: Action) => {
-// 	const state = store.getState()
+	useEffect(() => {
+		if(availableCards.size === 0) {
+			promise.resolve([])
+		}
+	}, [availableCards])
 
-// 	switch(action.type) {
-// 		case 'ask-for-card': {
-// 			const player = state.players.get(action.player)
-// 			const availableCards = player[action.from].filter(card => card.is(action.cardType))
+	return <CardPrompt cards={availableCards.toArray()} amount={amount} onSelect={card => promise.resolve(card)} />
+}
 
-// 			if(availableCards.size > 0) {
-// 				if(action.amount === 1) {
-// 					const { card }: { card: Card } = await prompt({
-// 						type: 'select',
-// 						name: 'card',
-// 						message: `pick a ${action.cardType.friendlyName()} to play`,
-// 						choices: availableCards.toArray().map((card, i) => ({
-// 							title: card.toString(),
-// 							value: card
-// 						})).concat({
-// 							title: 'nothing',
-// 							value: undefined
-// 						}),
-// 						onState
-// 					})
+const ChooseOne: FunctionComponent<ChooseOneAction> = ({ choices, promise }) => {
+	return <Select items={
+		Object.entries(choices).map(([value, label]) => ({ value, label }))
+	} onSelect={({value}) => promise.resolve(value)} />
+}
 
-// 					action.promise.resolve(card instanceof Card ? [card] : [])
-// 				} else {
-// 					const { cards }: { cards: Card[] } = await prompt({
-// 						type: 'multiselect',
-// 						name: 'cards',
-// 						message: `pick up to ${action.amount} ${action.cardType.friendlyName()} to play`,
-// 						choices: availableCards.toArray().map((card, i) => ({
-// 							title: card.toString(),
-// 							value: card
-// 						}))
-// 					})
+const ShowTurn: FunctionComponent = () => {
+	const turn = useAppSelector(state => state.turn)
+	const player = useAppSelector(state => state.players.get(turn.player))
 
-// 					action.promise.resolve(cards)
-// 				}
-// 			} else {
-// 				action.promise.resolve([])
-// 			}
+	return player ? <Box borderStyle='round' borderColor='gray' paddingX={1} flexDirection='column'>
+		<Box>
+			<Text bold>{turn.player}</Text>
+			<Spacer />
+			<Text>{turn.actions} actions</Text>
+			<Text dimColor> • </Text>
+			<Text>${turn.coins}</Text>
+			<Text dimColor> • </Text>
+			<Text>{turn.buys} buys</Text>
+		</Box>
+		<Box>
+			<CardGrid cards={player.hand.toArray().map(card => card.constructor as (typeof Card))} compact />
+			<Spacer />
+			<Box width={10} height={6} borderStyle={player.deck.size > 1 ? 'doubleSingle' : 'single'} borderColor={player.deck.size > 0 ? 'gray' : 'blackBright'} flexDirection='column'>
+				<Text>deck</Text>
+				<Text>{player.deck.size} cards</Text>
+			</Box>
+			<Box width={10} height={6} borderStyle={player.discard.size > 1 ? 'doubleSingle' : 'single'} borderColor={player.discard.size > 0 ? 'gray' : 'blackBright'} flexDirection='column'>
+				<Text>discard</Text>
+				<Text>{player.discard.size} cards</Text>
+			</Box>
+		</Box>
+		{player.inPlay.size > 0 &&
+			<Box flexDirection='column'>
+				<Text>in play</Text>
+				<CardGrid cards={player.inPlay.toArray().map(card => card.constructor as (typeof Card))} compact />
+			</Box>
+		}
+	</Box> : null
+}
 
-// 			break;
-// 		}
-// 		case 'ask-for-supply-card': {
-// 			const cardTypes = state.supply.keySeq().toArray()
+const App: FunctionComponent = () => {
+	const [waitingFor, setWaitingFor] = useState<Action>()
+	const dispatch = useDispatch()
 
-// 			await tick()
+	addInterface(store => next => (action: Action) => {
+		if('promise' in action) {
+			setWaitingFor(action)
+			action.promise.finally(() => {
+				setWaitingFor(null)
+			})
+		} else {
+			next(action)
+		}
+	})
 
-// 			const { cardType }: { cardType: typeof Card } = await prompt({
-// 				type: 'select',
-// 				name: 'cardType',
-// 				message: 'choose a card to buy',
-// 				choices: cardTypes.filter(type => (
-// 					type.cost(store.getState().turn) <= action.maxValue
-// 					&& store.getState().supply.get(type).length > 0
-// 				)).map((type, i) => ({
-// 					title: type.toString() + ` $${type.cost(store.getState().turn)} (${store.getState().supply.get(type).length})`,
-// 					value: type
-// 				})).concat({
-// 					title: 'nothing',
-// 					value: undefined
-// 				})
-// 			})
+	return <>
+		<ShowTurn />
 
-// 			action.promise.resolve(cardType instanceof Function ? cardType : undefined)
-// 			break;
-// 		}
-// 		case 'choose-one': {
-// 			const { choice } = await prompt({
-// 				type: 'select',
-// 				name: 'choice',
-// 				message: 'choose one',
-// 				choices: Object.entries(action.choices).map(
-// 					([value, title]) => ({value, title})
-// 				)
-// 			})
+		{waitingFor && waitingFor.type === 'ask-for-supply-card' && (
+			<ShowSupply {...waitingFor} />
+		)}
 
-// 			action.promise.resolve(choice)
+		{waitingFor && waitingFor.type === 'ask-for-card' && (
+			<ChooseCard {...waitingFor} />
+		)}
+	</>
+}
 
-// 			break
-// 		}
-// 		default:
-// 			next(action)
-// 	}
-// })
+render(<Provider store={j}><App /></Provider>)
 
 j.dispatch(initSupplyAction([
 	Copper,

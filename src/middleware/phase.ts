@@ -96,7 +96,6 @@ const phase: Middleware = store => next => async (action: Action) => {
 					const playerIds = getState().players.keySeq()
 					const playerIndex = playerIds.findIndex(player => player === getState().turn.player)
 					const nextPlayer = playerIds.get(playerIndex + 1, playerIds.first())
-					console.log('NEXT PLAYER', getState().turn.player, nextPlayer)
 					store.dispatch(turnAction(nextPlayer))
 					break;
 				}
