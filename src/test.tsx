@@ -46,25 +46,34 @@ const CardPrompt: FunctionComponent<CardPromptProps> = ({ cards, onSelect, amoun
 	}
 
 	return  <Select
-		items={items}
-		onSelect={({ value }) => onSelect([ value ])}
+		items={items.concat({
+			label: 'nothing',
+			key: 'nothing',
+			value: null
+		})}
+		onSelect={({ value }) => onSelect(value ? [ value ] : [])}
 	/>
 }
 
 const typeColors = {
 	Action: 'grayBright',
 	Victory: 'green',
-	Treasure: 'yellow'
+	Treasure: 'yellow',
+	Curse: 'magentaBright'
 }
 
 type CardConstructor = { new(): Card }
+
+const CardBox: FunctionComponent<{selected?: boolean, compact?: boolean}> = ({ children, selected, compact }) => <Box borderStyle={selected ? 'bold': 'round'} borderColor={selected ? 'whiteBright' : 'gray'} width={compact ? 10 : 20} height={compact ? 6 : 10} flexDirection='column' paddingX={1}>
+	{children}
+</Box>
 
 const ShowCard: FunctionComponent<{Card: typeof Card, selected?: boolean, compact?: boolean}> = ({ Card, selected, compact }) => {
 	const turn = useAppSelector(state => state.turn)
 	const state = useAppSelector(state => state)
 	const card = new (Card as unknown as CardConstructor)()
 
-	return <Box borderStyle={selected ? 'bold': 'round'} borderColor={selected ? 'whiteBright' : 'gray'} width={compact ? 10 : 20} height={compact ? 6 : 10} flexDirection='column' paddingX={1}>
+	return <CardBox selected={selected} compact={compact}>
 		<Box justifyContent='space-between' marginBottom={1}>
 			<Text bold color='white'>{Card.toString()}</Text>
 			{!compact && <Text>${Card.cost(turn)}</Text>}
@@ -92,40 +101,60 @@ const ShowCard: FunctionComponent<{Card: typeof Card, selected?: boolean, compac
 				</Fragment>
 			})}
 		</Box>
-	</Box>
+	</CardBox>
 }
 
 const CardGrid: FunctionComponent<{cards: (typeof Card)[], onSelect?: (card: typeof Card) => void, compact?: boolean}> = ({ cards, onSelect, compact }) => {
 	const { stdout } = useStdout()
+
 	const columns = Math.floor(stdout.columns / (compact ? 10 : 20))
-	const rows = Math.ceil(cards.length / columns)
 
 	const [selectedRow, setRow] = useState(0)
 	const [selectedColumn, setColumn] = useState(0)
 
+	const items = cards.map((card, i) => (
+		<ShowCard key={i} Card={card} selected={onSelect && i === selectedColumn + columns * selectedRow} compact={compact} />
+	)).concat(onSelect ?
+		<CardBox selected={onSelect && cards.length === selectedColumn + columns * selectedRow} key={cards.length}>
+			<Text>nothing</Text>
+		</CardBox> : []
+	)
+
+	const rows = Math.ceil(items.length / columns)
+
 	useInput((input, key) => {
 		if(key.leftArrow) {
-			setColumn(c => ((c - 1) + columns) % columns)
+			setColumn(c => {
+				const width = selectedRow === rows - 1 ? ((items.length % columns) || columns) : columns
+
+				return ((c - 1) + width) % width
+			})
 		}
+
 		if(key.rightArrow) {
-			setColumn(c => ((c + 1) + columns) % columns)
+			setColumn(c => {
+				const width = selectedRow === rows - 1 ? (items.length % columns || columns) : columns
+
+				return ((c + 1) + width) % width
+			})
 		}
+
 		if(key.upArrow) {
 			setRow(r => ((r - 1) + rows) % rows)
 		}
 		if(key.downArrow) {
 			setRow(r => ((r + 1) + rows) % rows)
 		}
+
 		if(key.return && onSelect) {
 			onSelect(cards[selectedRow * columns + selectedColumn])
 		}
 	})
 
+
 	return <Box flexDirection='column'>
 		{Array.from({ length: rows }, (_, row) => <Box key={row}>
-			{cards.slice(columns * row, columns * row + columns).map((card, column) => (
-				<ShowCard key={column} Card={card} selected={onSelect && column === selectedColumn && row === selectedRow} compact={compact} />
-			))}
+			{items.slice(columns * row, columns * row + columns)}
 		</Box>)}
 	</Box>
 }
