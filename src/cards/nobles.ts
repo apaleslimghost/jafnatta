@@ -3,9 +3,10 @@ import { chooseOneAction } from "../actions/choose-one";
 import { State, ThunkDispatch } from "../types";
 import { ActionCard, Card, type, VictoryCard } from "./types";
 
-@type(VictoryCard) @type(ActionCard)
+@type(ActionCard) @type(VictoryCard)
 export default class Nobles extends Card {
 	static cost = () => 6
+	static text = `Choose one: +3 cards; or +2 actions.`
 
 	async onPlay(dispatch: ThunkDispatch, state: State, player: string) {
 		const choice = await dispatch(chooseOneAction({

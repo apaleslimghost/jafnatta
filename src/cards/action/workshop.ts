@@ -6,9 +6,7 @@ import { ActionCard, Card, type } from "../types";
 @type(ActionCard)
 export default class Workshop extends Card {
 	static displayName = 'Workshop';
-	static text = `
-		gain
-	`;
+	static text = `Gain a card costing up to $4.`
 	static cost = () => 3;
 
 	async onPlay(dispatch: ThunkDispatch, state: State, player: string) {

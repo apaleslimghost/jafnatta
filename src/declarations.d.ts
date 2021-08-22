@@ -8,3 +8,7 @@ declare module 'redux-dynamic-middlewares' {
 
 	export function createDynamicMiddlewares<T extends Middleware>(): DynamicMiddlwares<T>
 }
+
+declare module 'react-redux/lib/alternate-renderers' {
+	export * from 'react-redux'
+}
